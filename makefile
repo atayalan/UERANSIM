@@ -2,6 +2,7 @@ GREEN=\033[0;1;92m
 NC=\033[0m
 
 build: FORCE
+	echo "test"
 	rm -fr logs # Old version log files
 	mkdir -p build
 	rm -fr build/*
