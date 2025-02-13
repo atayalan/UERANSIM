@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ueransim-{{- randAlphaNum 5 -}}
+  name: ueransim
   namespace: {{ .Release.Namespace }}
   labels:
     version: {{ .Values.image.tag | default .Chart.Version }}
@@ -43,14 +43,14 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
-        args: ["/bin/bash", "-ce", "sleep infinity"]
+        args: ["/bin/bash", "-ce", "/opt/ueransim/config/run.sh; sleep infinity"]
         securityContext:
           runAsUser: 0
         volumeMounts:
         - mountPath: /var/crash
           name: coredump
-        - mountPath: /usr/etc/nf_profile
-          name: nfprofiles
+        - mountPath: /opt/ueransim/config
+          name: config
         resources:
           limits:
             cpu: 200m
@@ -80,6 +80,7 @@ spec:
         hostPath:
           path: /usr/atayalan/core_dump
           type: DirectoryOrCreate
-      - name: nfprofiles
+      - name: config
         configMap:
-          name: ext-nf-profiles
+          name: ueransim-cm
+          defaultMode: 0744
