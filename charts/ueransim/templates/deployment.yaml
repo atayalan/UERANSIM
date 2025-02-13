@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ueransim-{{- randAlphaNum 5 -}}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    version: {{ .Values.image.tag | default .Chart.Version }}
+    app: ueransim
+    service: ueransim
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      service: ueransim
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        version: {{ .Values.image.tag | default .Chart.Version }}
+        service: ueransim
+        app: ueransim
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      imagePullSecrets:
+      - name: pullsecret
+      containers:
+      - name: ueransim
+      {{- if eq .Values.mode "production" }}
+        image: registry.ataya.io/images/ueransim:{{ .Values.image.tag | default .Chart.Version }}
+      {{- else }}
+        {{- if eq .Values.mode "dev" }}
+        image: registry.atayalan-dev.com/images/ueransim:{{ .Values.image.tag | default .Chart.Version }}
+        {{- else }}
+        image: registry.ataya-se.com/images/ueransim:{{ .Values.image.tag | default .Chart.Version }}
+        {{- end }}
+      {{- end }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        args: ["/bin/bash", "-ce", "sleep infinity"]
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /var/crash
+          name: coredump
+        - mountPath: /usr/etc/nf_profile
+          name: nfprofiles
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 50m
+            memory: 100Mi
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: DEPLOYMENT_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+      volumes:
+      - name: coredump
+        hostPath:
+          path: /usr/atayalan/core_dump
+          type: DirectoryOrCreate
+      - name: nfprofiles
+        configMap:
+          name: ext-nf-profiles

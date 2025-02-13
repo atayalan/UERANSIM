@@ -1,0 +1,9 @@
+@Library('atayalan-ci') _
+servicerelease {
+    lang = "customize"
+    service = "ueransim"
+    cloud = false
+    chartgen = false
+    dockeronly = false
+    goVersion = "1.20.5-2"
+}
