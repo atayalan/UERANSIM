@@ -1,3 +1,7 @@
+# Changelog for 1.0.2
+
+## Issues
+  - 758bc93 update chart
 # Changelog for 1.0.1
 
 ## Issues

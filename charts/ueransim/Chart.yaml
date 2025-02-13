@@ -3,5 +3,5 @@ name: ueransim
 description: A Helm chart for UERANSIM
 icon: https://github.com/aligungr/UERANSIM/raw/master/.github/logo.png
 type: application
-version: 1.0.1
+version: 1.0.2
 appVersion: v1.0
