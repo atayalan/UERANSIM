@@ -1,0 +1,1034 @@
+# Changelog for 1.0.1
+
+## Issues
+  - 4d80cb7 setup cicd
+  - a0c3c05 Update README.md
+  - 1d1e154 Update README.md
+  - c196180 Update README.md
+  - 4e697ed Update constants.hpp
+  - a9b1a9b Add tun netmask to custom-ue, free5gc-ue config files
+  - 927804a eap: check type bounds
+  - c6d58a3 eap: attribute message length check for at least 2
+  - 3e5e11f eap: check unvalid message type before deref
+  - af87145 sysInfo: Check BarringInfoList presence before unpacking
+  - cc06df0 Change tun netmask
+  - 346ea20 Add ue configurable tunnel netmask
+  - cf8906f feat: Add a function to clean the build environment
+  - 1f2e7a1 fix: Give execution permission to nr-binder by default
+  - ef42482 Made changes suggested by aligungr
+  - 11dd5e7 Add rel17 compiled asn and ngap files
+  - 3e016e7 Add rel17 asn file
+  - 2da35a6 added intelligent AMF selection at gNB
+  - e0c9bbc add check for empty NAS PDU
+  - 2fc85e3 update mnc to match imsi
+  - 025c86c Added pduLength check
+  - 027fa3a Added pduLength check
+  - 372af9d Update octet_view.cpp
+  - a3c76ee Update octet_view.cpp
+  - bfcfad8 various eap-aka-prime fixes
+  - f5fb80e Fix ipv6-only sctp socket family issue
+  - e1ab4d1 Update free5gc UE default IMSI number on config
+  - df5036f fix: allocate memory before ngapPdu->choice.initiatingMessage
+  - de2ed4f Fix AKA behavior: Verify MAC first, then check SQN
+  - c8592d8 Fix incomplete and undeclared symbols
+  - 3c15c1f Typo fixed
+  - 44bc39a Removed unused variable
+  - 6804df6 README updated
+  - 0021e30 cmac.c code cleanup
+  - 7868821 Copyright updated
+  - ab5cd86 Update README.md
+  - c6aed93 Modifications requested for the PR
+  - f98044e Correcting BCD encoding into SUCI Profile A
+  - 8dda195 Adding KDF X9.63, X25519 for key generation and shared key computing
+  - 9b463fe Adding protectionScheme in GetConfigByUe function
+  - 4cdac7d Adding protectionScheme into config file
+  - c7d8248 add pdu type related gsm cause
+  - 0870edc Correcting BCD encoding into SUCI Profile A
+  - a0caf02 Adding KDF X9.63, X25519 for key generation and shared key computing
+  - 14ff18b Adding protectionScheme in GetConfigByUe function
+  - 6dc9350 Adding protectionScheme into config file
+  - b4531b1 Adding EncodeRoutingIndicator with slightly modified EncodeBcdString
+  - fd565db Adding routing indicator management into the config file. This parameter can be customized now.
+  - ed4dca0 make tunnel interface name configurable
+  - 9f07315 Update README.md
+  - 316658d README.md updated
+  - f9f5e1c Fix up "Fix silented format-security warning"
+  - 40200e8 Specify minimum required CMake version only once
+  - 48b6c94 Fix silented format-security warning
+  - 437542e Fix vector creation
+  - 744d92e Fix compile error
+  - 5819ee4 Handling of GTP-U Echo Request
+  - d8d8f05 Open5GS changes default MCC/MNC 901/70 -> 999/70
+  - cfd4ae8 Add handling of GTP-U Echo Request
+  - 564f9d2 README updated
+  - e8c05af UE execution delay option
+  - 975e167 Fix for issue https://github.com/aligungr/UERANSIM/issues/469
+  - c38af2b Code reformat
+  - f65e6a3 fix issue #504
+  - e20e151 Global gNodeB ID bug fix
+  - 5b2ab53 README.md updated
+  - e1afcda 5G-S-TMSI encoding fix in Initial UE Message
+  - ea3ea23 5G-S-TMSI encoding fix in Initial UE Message
+  - 384636f Release of v3.2.6
+  - 132d7a3 NAS/RRC memory leak fix
+  - 7bc0d09 NTS memory leak fix
+  - 1a4e229 NTS memory leak fix
+  - 2d700bc NTS memory leak fix
+  - 5a0c129 NTS memory leak fix
+  - d6accb5 NTS memory leak fix
+  - 3bcb27f NTS memory leak fix
+  - 7376f37 NTS memory leak fix
+  - 4146a48 NTS memory leak fix
+  - 4ec4a78 NTS memory leak fix
+  - 8e36839 Global gNodeB ID bug fix
+  - 38a8b5e Use getaddrinfo() instaed of gethostbyname()
+  - 5d0664c Fix io::GetHostByName to return correctly IPv6
+  - 1e280bd Allow using FQDN along with IPv4 and IPv6
+  - b8c8691 Configuration update command bug fix
+  - b8adc2f Release of 3.2.5
+  - 19484aa UE config refactored
+  - 1ce11d5 IPv6 support
+  - bfcd748 IPv6 support
+  - 27262cb IP resolution bug fix
+  - f74badf IPv6 support
+  - 84e2893 IPv6 support
+  - 6093698 IPv6 support
+  - 12de88b IPv6 support
+  - fe37f24 IPv6 support
+  - bdf0778 IPv6 support
+  - 2fe83f5 IPv6 support
+  - eaea0f4 IPv6 support
+  - ac44703 IPv6 support
+  - 6699b76 IPv6 support
+  - 801d2fb Avoid starvation
+  - 97aaab0 Enable IPv6 for n2 link (amf)
+  - 59c1302 Support for 32-bit architectures
+  - 5ace587 Support for 32-bit architectures
+  - 003d7e9 Allows to use IPv6 addresses for UE to gNB link
+  - 9d3f49f Support for 32-bit architectures
+  - aa2b169 Support for 32-bit architectures
+  - 0221f42 Security type header fixed for De-registration request
+  - 2f18cae README updated
+  - d571ed8 Fix warning from IPv6FromString
+  - a0829b4 EEA3 refactor
+  - 184cba4 EEA3 refactor
+  - 8bd60af fix eea3 & eia3 computing data byte order
+  - 0765eba PDU session release bug fixed in GTP layer
+  - 0a0e559 NGAP initial context setup bug fix
+  - 9a4dffa check null pointer
+  - c508e5e fix null pointer exception
+  - baffde2 S-TMSI handling in RRC connection setup
+  - 847fbaa S-TMSI handling in UE RRC connection setup
+  - 35cd377 S-TMSI handling in gNodeB RRC connection setup
+  - 7ab1689 S-TMSI handling in Initial UE Message
+  - bbf325a Request Type IE handling improvement
+  - 5b365a3 Request Type IE handling improvement
+  - 857b1cd NAS replay protection bug fix
+  - f3b6a6b Fix the pdu release IE request type should not be intial request
+  - 8bf2f54 T3512 CM state fix
+  - aec935e Release of v3.2.4
+  - 42102a1 README updated
+  - c89dd97 Initial Context Setup improvements
+  - fbaea18 Allow IMSI smaller than 15
+  - eef0e88 SCTP connection reset handling
+  - f92bafb RNG improvements and fix of initial ID conflict
+  - 28c8124 RNG improvements and fix of initial ID conflict
+  - 04a4dbb TAI list handling improvement
+  - 6d51a5c TAI list handling improvement
+  - 700f304 IMSI can be less than 15 chars
+  - 10bda64 PS list included in UEContextReleaseRequest
+  - 949f4fe fix ue config annotation
+  - 31b24fa UE CLI IMSI option reading fixed
+  - 68e2e80 Decode BCD bug fixed
+  - 552a2eb Version upgrade
+  - 3565c85 version upgrade
+  - e4e4a15 IMSI length fixed
+  - f522251 GetIp4 improvements
+  - 10d09d5 GetIp4 improvements for domain improvements
+  - dd82178 GetIp4 improvements for network interface IP addresses.
+  - 375d538 Release of v3.2.2
+  - e60b4cb Octal literal fix in YAML parsing
+  - d5bcb6c Add octal fix in GetInt32 function
+  - 4f2b880 Quick solution for mnc values bug
+  - 9c84f27 Handling the NAS count wrapping around
+  - ecf60d8 Replay protection of NAS messages
+  - 49f3577 Replay protection of NAS messages
+  - 81e07ec NAS Count handling in case of an RRC establishment failure
+  - 34cc91e Initial cell selection bug fix
+  - 8c25070 Release of v3.2.1
+  - 615a8b3 Release of v3.2.1
+  - 5dcb964 Release of v3.2.1
+  - cfdbc54 Release of v3.2.1
+  - 24f170d Release of v3.2.1
+  - e1182d4 UAC implementation
+  - d6f38e6 UAC implementation
+  - 3b64637 UAC implementation
+  - 279603c UAC implementation
+  - 8d75342 UAC for de-registration procedure
+  - 1140c9c UAC for de-registration procedure
+  - 8ccfdd5 CMakeLists.txt fixed
+  - 667b6c1 UAC implementation
+  - b4ef5a1 Typo fix
+  - 4e12231 UAC implementation
+  - e8c149d UAC implementation
+  - 5c795ae UAC implementation
+  - 884965d UAC implementation
+  - fd2e832 UAC implementation
+  - b237a9e UAC implementation
+  - 0ccaa71 UAC implementation
+  - 18a4e20 UAC implementation
+  - a20de1a UAC implementation
+  - 9b20fb7 UAC implementation
+  - 1a6d3c2 UAC Access category determination
+  - f1ee319 UAC Access identity determination
+  - 22416f8 UAC info added to UE-CLI
+  - 294df03 High priority checking via UAC-ACC
+  - 0fd425a UAC fields added to the UE configuration
+  - 7f1704e UAC fields added to the UE configs
+  - d150e59 Custom GTP IP address configuration for UP Transport Layer Information
+  - 78a27d3 Release of v3.2.0
+  - d998b2c L3 RRC/NAS developments
+  - c4c9ea6 L3 RRC/NAS developments
+  - cc3c83e L3 RRC/NAS developments
+  - a3363e6 L3 RRC/NAS developments
+  - 707f4b9 L3 RRC/NAS developments
+  - 35574c7 L3 RRC/NAS developments
+  - c54ff57 L3 RRC/NAS developments
+  - 99a9851 L3 RRC/NAS developments
+  - 0455b4d L3 RRC/NAS developments
+  - 6308b92 L3 RRC/NAS developments
+  - 6e63a21 L3 RRC/NAS developments
+  - ea44428 L3 RRC/NAS developments
+  - 4b392a2 L3 RRC/NAS developments
+  - 9607358 L3 RRC/NAS developments
+  - ade2494 L3 RRC/NAS developments
+  - 6141ba2 L3 RRC/NAS developments
+  - 62f9ed0 L3 RRC/NAS developments
+  - d3cd045 L3 RRC/NAS developments
+  - 2d2a23e UE CLI improvements
+  - 6f903ab L3 RRC/NAS developments
+  - cb4899d L3 RRC/NAS developments
+  - 748d53e L3 RRC/NAS developments
+  - 36e91e8 L3 RRC/NAS developments
+  - 93c3fce L3 RRC/NAS developments
+  - a55cfeb L3 RRC/NAS developments
+  - 2b54162 L3 RRC/NAS developments
+  - 16c056f L3 RRC/NAS developments
+  - 85c8b72 L3 RRC/NAS developments
+  - 3ab8bc4 L3 RRC/NAS developments
+  - ae86138 L3 RRC/NAS developments
+  - 0cad097 L3 RRC/NAS developments
+  - 6ae860c L3 RRC/NAS developments
+  - 2710380 L3 RRC/NAS developments
+  - ac01807 L3 RRC/NAS developments
+  - 5f85adc L3 RRC/NAS developments
+  - 2867511 L3 RRC/NAS developments
+  - 6974ebd bits.hpp compile fix
+  - fffd1de bits.hpp compile fix
+  - 41e7413 Add dnn and snssai to SessionInfo.
+  - 1c5f694 L3 RRC/NAS developments
+  - edf7873 L3 RRC/NAS developments
+  - 73a6e4b L3 RRC/NAS developments
+  - 5476d10 L3 RRC/NAS developments
+  - d71d6d9 L3 RRC/NAS developments
+  - ac4a0f2 L3 RRC/NAS developments
+  - 53ae415 L3 RRC/NAS developments
+  - a3362af L3 RRC/NAS developments
+  - becf4e6 L3 RRC/NAS developments
+  - 21e73b5 L3 RRC/NAS developments
+  - 89f5629 L3 RRC/NAS developments
+  - 8582ab9 L3 RRC/NAS developments
+  - 30216be L3 RRC/NAS developments
+  - c4b82c5 L3 RRC/NAS developments
+  - cfeae36 L3 RRC/NAS developments
+  - e44c83d L3 RRC/NAS developments
+  - 30140d1 L3 RRC/NAS developments
+  - bd1e222 L3 RRC/NAS developments
+  - 3da9ec3 L3 RRC/NAS developments
+  - 4d15224 L3 RRC/NAS developments
+  - a5a4974 L3 RRC/NAS developments
+  - aaeea51 L3 RRC/NAS developments
+  - c486df5 L3 RRC/NAS developments
+  - a720e5e L3 RRC/NAS developments
+  - 65cde6c L3 RRC/NAS developments
+  - e73b1ce L3 RRC/NAS developments
+  - 455524d L3 RRC/NAS developments
+  - f8107a5 L3 RRC/NAS developments
+  - 835180e L3 RRC/NAS developments
+  - 6ea3574 L3 RRC/NAS developments
+  - 83563a4 L3 RRC/NAS developments
+  - 3c6027c L3 RRC/NAS developments
+  - 4d22e55 L3 RRC/NAS developments
+  - ba45624 L3 RRC/NAS developments
+  - f08ac05 L3 RRC/NAS developments
+  - 984045f L3 RRC/NAS developments
+  - aec399e L3 RRC/NAS developments
+  - ce6ff2e L3 RRC/NAS developments
+  - c2dbba5 L3 RRC/NAS developments
+  - d79d643 L3 RRC/NAS developments
+  - e3e36ba L3 RRC/NAS developments
+  - 416a658 L3 RRC/NAS developments
+  - 614ac12 L3 RRC/NAS developments
+  - 1221531 L3 RRC/NAS developments
+  - 5c5bc83 L3 RRC/NAS developments
+  - cbe5723 L3 RRC/NAS developments
+  - 4453a90 L3 RRC/NAS developments
+  - d2bf24c L3 RRC/NAS developments
+  - c7e88bc L3 RRC/NAS developments
+  - e10b455 L3 RRC/NAS developments
+  - becc99c L3 RRC/NAS developments
+  - 83c733c L3 RRC/NAS developments
+  - 0c4a14e L3 RRC/NAS developments
+  - af662c9 L3 RRC/NAS developments
+  - caa925d L3 RRC/NAS developments
+  - 8975bd8 L3 RRC/NAS developments
+  - 152a128 L3 RRC/NAS developments
+  - 55fd679 L3 RRC/NAS developments
+  - d348025 L3 RRC/NAS developments
+  - affae9d L3 RRC/NAS developments
+  - 22aca1d L3 RRC/NAS developments
+  - aee8e2b L3 RRC/NAS developments
+  - fab5b46 L3 RRC/NAS developments
+  - ccc1b1d L3 RRC/NAS developments
+  - 0d4d87a L3 RRC/NAS developments
+  - a366c2f L3 RRC/NAS developments
+  - 1df2104 L3 RRC/NAS developments
+  - e7ef5f6 L3 RRC/NAS developments
+  - 0489987 L3 RRC/NAS developments
+  - 9b36a7d L3 RRC/NAS developments
+  - 5dc2ae1 L3 RRC/NAS developments
+  - fdf86aa L3 RRC/NAS developments
+  - 06b0900 L3 RRC/NAS developments
+  - e04f592 L3 RRC/NAS developments
+  - 7526608 L3 RRC/NAS developments
+  - 771dd26 L3 RRC/NAS developments
+  - cb72a45 L3 RRC/NAS developments
+  - 7cba7f5 L3 RRC/NAS developments
+  - 52fe70b L3 RRC/NAS developments
+  - 2a66fe9 L3 RRC/NAS developments
+  - 0ad6cf2 L3 RRC/NAS developments
+  - 606f38d L3 RRC/NAS developments
+  - d1fde22 L3 RRC/NAS developments
+  - 6e675f6 L3 RRC/NAS developments
+  - 8a27319 L3 RRC/NAS developments
+  - 5551dbe L3 RRC/NAS developments
+  - e3fa41a L3 RRC/NAS developments
+  - 84304df L3 RRC/NAS developments
+  - ae349f9 L3 RRC/NAS developments
+  - c624f4a L3 RRC/NAS developments
+  - d558735 L3 RRC/NAS developments
+  - 9c836c2 L3 RRC/NAS developments
+  - 860db47 L3 RRC/NAS developments
+  - 06e96d4 L3 RRC/NAS developments
+  - d67a3c5 L3 RRC/NAS developments
+  - dc8bebb L3 RRC/NAS developments
+  - 95e2f03 L3 RRC/NAS developments
+  - a40bb41 L3 RRC/NAS developments
+  - 9d84144 L3 RRC/NAS developments
+  - 6818bd9 L3 RRC/NAS developments
+  - d3578ca L3 RRC/NAS developments
+  - 637e4a5 L3 RRC/NAS developments
+  - 84906d4 L3 RRC/NAS developments
+  - 9f77bdd L3 RRC/NAS developments
+  - f7e8738 L3 RRC/NAS developments
+  - 5f51d36 L3 RRC/NAS developments
+  - f6aba39 L3 RRC/NAS developments
+  - 90f9633 L3 RRC/NAS developments
+  - 360d0e4 L3 RRC/NAS developments
+  - f481608 L3 RRC/NAS developments
+  - 1ddb803 L3 RRC/NAS developments
+  - 8fc768a L3 RRC/NAS developments
+  - 750d561 L3 RRC/NAS developments
+  - c0d05ab L3 RRC/NAS developments
+  - 629a07a L3 RRC/NAS developments
+  - 8397d4e L3 RRC/NAS developments
+  - 02c62f1 L3 RRC/NAS developments
+  - d86f706 L3 RRC/NAS developments
+  - 838a734 L3 RRC/NAS developments
+  - 173b501 L3 RRC/NAS developments
+  - 0792a7d L3 RRC/NAS developments
+  - 7ad237c L3 RRC/NAS developments
+  - dc57e41 L3 RRC/NAS developments
+  - 9f66734 L3 RRC/NAS developments
+  - 08e7344 L3 RRC/NAS developments
+  - 9be407e L3 RRC/NAS developments
+  - 509824a L3 RRC/NAS developments
+  - c5bb895 L3 RRC/NAS developments
+  - 9cc4615 L3 RRC/NAS developments
+  - 2dbbcd5 L3 RRC/NAS developments
+  - 2342f91 L3 RRC/NAS developments
+  - 8eb13e6 L3 RRC/NAS developments
+  - da91fa0 L3 RRC/NAS developments
+  - 7a81bd4 L3 RRC/NAS developments
+  - a90b92e L3 RRC/NAS developments
+  - f64410e L3 RRC/NAS developments
+  - b971397 L3 RRC/NAS developments
+  - 9640757 L3 RRC/NAS developments
+  - 07ed4cb L3 RRC/NAS developments
+  - f267bee L3 RRC/NAS developments
+  - 3cccea9 L3 RRC/NAS developments
+  - f0072a0 L3 RRC/NAS developments
+  - 7fceda7 L3 RRC/NAS developments
+  - d765122 L3 RRC/NAS developments
+  - fd8b3c1 L3 RRC/NAS developments
+  - 7953b27 L3 RRC/NAS developments
+  - bcf1af2 L3 RRC/NAS developments
+  - 5fbd15a L3 RRC/NAS developments
+  - 755898a L3 RRC/NAS developments
+  - 0f99f8c L3 RRC/NAS developments
+  - 4391f92 L3 RRC/NAS developments
+  - 6416362 L3 RRC/NAS developments
+  - effbacb L3 RRC/NAS developments
+  - 31f7708 L3 RRC/NAS developments
+  - 250f573 L3 RRC/NAS developments
+  - d3c6d99 L3 RRC/NAS developments
+  - feaeffb L3 RRC/NAS developments
+  - 027d89d L3 RRC/NAS developments
+  - 0ed121e L3 RRC/NAS developments
+  - 417bbc1 L3 RRC/NAS developments
+  - 93cd83c L3 RRC/NAS developments
+  - 4fe5f47 L3 RRC/NAS developments
+  - bed3766 L3 RRC/NAS developments
+  - 55e8b4a L3 RRC/NAS developments
+  - 3c6590c L3 RRC/NAS developments
+  - 7b3fbc8 L3 RRC/NAS developments
+  - 0d8eed3 L3 RRC/NAS developments
+  - db31bda L3 RRC/NAS developments
+  - b0ff673 L3 RRC/NAS developments
+  - 8078dd5 RRC developments
+  - 03d6cc6 RRC developments
+  - 1a4531c RRC developments
+  - c8b02d5 RRC developments
+  - 3ad5404 RRC developments
+  - 32b69e8 RRC developments
+  - ff47264 RRC developments
+  - a7c632b RRC developments
+  - fd30069 RRC developments
+  - bda839b RRC developments
+  - 9dfe831 RRC developments
+  - 510cbb6 RRC developments
+  - 0bcefde RRC developments
+  - 9917324 RRC developments
+  - 2f54d45 RRC developments
+  - fd50392 RRC developments
+  - de27eb6 RRC developments
+  - 5e0d35c RRC developments
+  - 75bfc1c RRC developments
+  - 6c831a7 RRC developments
+  - 26a8e3d RRC developments
+  - 5d3bd10 RRC developments
+  - 9f53791 RRC developments
+  - 2dae558 RRC developments
+  - 5c09ed2 RRC developments
+  - 27727cb RRC developments
+  - 098e110 RRC developments
+  - 3a2eb0d RRC developments
+  - 5186a13 RRC developments
+  - d2c2055 RRC developments
+  - 525599a RRC developments
+  - c2cfdfe RRC developments
+  - b20f1af RRC developments
+  - 9684b8f RRC developments
+  - 85da3bc RRC developments
+  - aec9c13 RRC developments
+  - e0c66b8 RRC developments
+  - 563012b RRC developments
+  - 09f4f5a RRC developments
+  - 9f460e5 RRC developments
+  - cd9b752 RRC developments
+  - af2e3ff RRC developments
+  - 8748cc2 RRC developments
+  - 80bf2ca RRC developments
+  - 19e140b RRC developments
+  - 1aa16f4 RRC developments
+  - a5e5c48 RRC developments
+  - 0fbbaa3 RLS developments
+  - 61e78ba RLS developments
+  - 165fcb5 RLS developments
+  - d7c0580 RLS developments
+  - 5e2120d RLS developments
+  - 9df51e4 RLS developments
+  - e1e36f7 RLS developments
+  - 279e915 RLS developments
+  - 16dbe1a RLS developments
+  - fb77d5b RLS developments
+  - c8c4f47 RLS developments
+  - 15e20b1 RLS developments
+  - 26fc9fc RLS developments
+  - fa7def7 RLS developments
+  - 9d36138 RLS developments
+  - f8029dd RLS developments
+  - acbfb38 RLS developments
+  - dbac9b2 RLS developments
+  - cc39964 RLS developments
+  - a9f54d0 RLS improvements
+  - d998bea RLS improvements
+  - 066c2bf RLS improvements
+  - 5805cdc RLS improvements
+  - 1139725 RLS improvements
+  - c81d4a2 RLS improvements
+  - e909991 RLS improvements
+  - 4599652 RLS improvements
+  - 1b5c01d RLS improvements
+  - d1b6856 RLS improvements
+  - 5919f7d RLS improvements
+  - e8985ca RLS improvements
+  - e796709 RLS improvements
+  - 4da7261 RLS improvements
+  - c8a6ae4 RLS improvements
+  - a325fee RLS improvements
+  - 8e58ef2 RLS improvements
+  - fa549ca RLS improvements
+  - c16b6ca RLS improvements
+  - 8dda13c RLS improvements
+  - 22d92e5 RLS improvements
+  - 09e012d RLS improvements
+  - 4c9e98b RLS improvements
+  - 14f9233 RLS improvements
+  - 739be8b RLS improvements
+  - 79d9171 RLS improvements
+  - 9f8f384 RLS improvements
+  - 6dede22 RLS improvements
+  - 26e60c1 RLS improvements
+  - 9f7ada0 RLS improvements
+  - 5733441 RLS improvements
+  - 02b8fff RLS improvements
+  - 745de56 RLS improvements
+  - d406b7b RLS improvements
+  - a707dff RLS improvements
+  - 557b47e RLS improvements
+  - 308666c RLS improvements
+  - 9ec5747 RLS improvements
+  - 3acfc31 network.cpp refactor
+  - f4ba25f NAS MM refactor
+  - cc15b66 eCall inactive bug fix
+  - 1d540f1 UE MM machine improvements
+  - 3557b91 DL NAS Transport forwarding failure handling
+  - e713404 UL NAS Transport abnormal case handling
+  - 710a3b0 NAS MM refactor
+  - cb1e384 NAS MM refactor
+  - 250ff20 Include refactor
+  - dcbac2c Release of v3.1.9
+  - 7286e62 Protection of initial NAS messages
+  - bbd585c timer.cpp refactored
+  - f528f60 Protection of initial NAS messages
+  - 6ad594a NasMm refactor
+  - 7b09a5b Protection of initial NAS messages
+  - 44f0658 Protection of initial NAS messages
+  - ca8b19a Protection of initial NAS messages
+  - a9b7b96 Protection of initial NAS messages
+  - b2f74d6 README.md updated
+  - 7d5ba3c README.md updated
+  - 6cd3c82 README.md updated
+  - d4de0d0 README.md updated
+  - dc9e164 README.md updated
+  - 90d98b6 README.md updated
+  - 766f17a Service Request initiating controls added
+  - a5e46ba AMBR bug fix
+  - 8a59298 GTP refactor
+  - 23d7d61 Narrowing conversion fixes
+  - 7ff3ec3 Narrowing conversion fixes
+  - d5546ec EAP AKA' impl.
+  - 43dc6e5 EAP AKA' bug fix
+  - 67280c6 Typo fix
+  - 4e69394 EAP AKA' bug fix
+  - dd3e06b Logging bug fix
+  - 1d85281 Release of v3.1.8
+  - 242e494 RLS dissector refactored
+  - d964023 SST and SD range updated
+  - 8aadae0 Add Wireshark dissector for Radio Link Simulation Protocol
+  - 7663fab Update free5gc-ue.yaml
+  - 3904ce1 Update custom-ue.yaml
+  - aeb0e5f Update custom-gnb.yaml
+  - 27d841f Update open5gs-ue.yaml
+  - 8eeabe7 Update gnb.cpp
+  - 74e4997 Update custom-ue.yaml
+  - a195c54 Update free5gc-ue.yaml
+  - e924e7e Update custom-gnb.yaml
+  - a64a35b Update open5gs-ue.yaml
+  - 6ca3a04 Update ue.cpp
+  - 9896c8a Update yaml_utils.cpp
+  - d531e46 Update yaml_utils.cpp
+  - 620817a Update yaml_utils.cpp
+  - 91c7fec Authentication abnormal case handling
+  - 8755c10 Authentication abnormal case handling
+  - 6a9f533 Authentication abnormal case handling
+  - 64374ba Authentication abnormal case handling
+  - 6e23a56 Authentication abnormal case handling
+  - c81325d Authentication abnormal case handling
+  - f1e2819 T3516 handling
+  - c2122e0 T3516 handling
+  - b04d7b8 UE authentication procedure improvements
+  - 9ec69ec UE authentication procedure improvements
+  - 912dd5c UE authentication procedure improvements
+  - 9239919 DEREGISTRATION_ACCEPT_UE_ORIGINATING is accepted without integrity
+  - 68a4fbd UE authentication procedure improvements
+  - 82828c1 UE authentication procedure improvements
+  - 684c093 UE authentication procedure improvements
+  - 216e3f0 UE authentication procedure improvements
+  - eca3b99 UE authentication procedure improvements
+  - 611a2ea UE authentication procedure improvements
+  - 9a36d69 USIM refactor
+  - da1c691 USIM refactor
+  - 200a276 UE authentication procedure improvements
+  - 78937f5 UE authentication procedure improvements
+  - 1df2053 UE authentication procedure improvements
+  - 09f5e99 UE authentication procedure improvements
+  - 221332c UE authentication procedure improvements
+  - 7335078 Typo fix
+  - 8b37a2b UE authentication procedure improvements
+  - c50e630 UE authentication procedure improvements
+  - 6844801 UE authentication procedure improvements
+  - f47f7c4 UE Authentication refactor
+  - 8681c20 UE Authentication refactor
+  - 77507ca UE Authentication refactor
+  - bdf4852 UE Authentication refactor
+  - 05ccc56 UE Authentication refactor
+  - 6a0ad84 UE Authentication refactor
+  - a7e067b UE Authentication refactor
+  - 76c64f4 UE generic configuration update abnormla case 'c' handling
+  - 845e847 UE generic configuration update improvement
+  - 27b2694 Security mode command procedure improvement
+  - e28656c Security mode command procedure improvement
+  - 2944a00 Security mode command procedure improvement
+  - 1e36838 Security mode command procedure improvement
+  - 11289b7 Security mode command procedure improvement
+  - 58f9d74 Security mode command procedure improvement
+  - b6208f6 Security mode command procedure improvement
+  - 372c93c Security mode command procedure improvement
+  - 92cee68 Security mode command procedure improvement
+  - aad4d4c Security mode command procedure improvement
+  - f0ba292 Security mode command procedure improvement
+  - a88f4f8 Security mode command procedure improvement
+  - f02456c Security mode command procedure improvement
+  - 3c313a6 Security mode command procedure improvement
+  - b4db214 UE MM some TODO fixes
+  - c028605 TODO removed
+  - 6df172f Source tree refactored
+  - 1bcc2dd Source tree refactored
+  - 575603a Source tree refactored
+  - fd8b6f0 Source tree refactored
+  - bd363f5 Source tree refactored
+  - 3c1bed4 Source tree refactored
+  - 512f405 Source tree refactored
+  - 99254c0 Source tree refactored
+  - 9ab7bf2 Source tree refactored
+  - c4de6e8 Source tree refactored
+  - eb07d36 Source tree refactored
+  - 768c368 Source tree refactored
+  - 44c9d8a Source tree refactored
+  - 78d3805 Source tree refactored
+  - a5d3300 Source tree refactored
+  - b9e6009 Source tree refactored
+  - 973cd88 PDU Session Status related IEs encoding fix
+  - e788f0d PDU Session Status related IEs encoding fix
+  - 32d81be Transport layer address decoding bug fix
+  - 1debd33 .gitattributes updated
+  - c14408c .gitattributes ignored
+  - fec05fc Release of v3.1.7
+  - 7023ee5 Initial NAS encryption fixes
+  - ee5a2c4 PLMN search response improvements
+  - eea0f10 PLMN search response improvements
+  - 8a91c81 Logging improvements
+  - 65206b0 Paging procedure implementation
+  - c2982a2 Paging procedure implementation
+  - dfe78d5 Paging procedure implementation
+  - 83db344 Paging procedure implementation
+  - c1e093e NAS paging handling
+  - a657286 OctetView refactor
+  - 31337c4 UE RRC paging handling
+  - 4fa2382 UE RRC paging handling
+  - 2a4de4b UE RRC refactor
+  - 0c9771a gNB RRC paging handling
+  - 6df4d7a RRC paging handling
+  - d81431d uint16_t overload added to OctetString for appendOctet2 function
+  - abf4ffa RRC paging handling
+  - d362390 RRC paging handling
+  - fee7dfd RRC paging handling
+  - 46aa908 RRC paging handling
+  - 173e146 NGAP paging handling
+  - 96f19d7 NGAP paging handling
+  - 6803629 NGAP paging handling
+  - b588f76 Plain NAS messages are accepted for some types
+  - 049eab5 NAS MM refactor
+  - f460d82 NAS MM refactor
+  - 74452fe Uplink NAS signalling pending handling
+  - 492086e Old TODO removed
+  - 00e4a33 Service Request on uplink data pending
+  - 5938236 Service Request on uplink data pending
+  - 069fb23 Service Request attempt counter reset on mobility registration
+  - 383f512 Service Request refactor
+  - f7accb1 UE context release request added to gNB CLI
+  - f0c8eec UE context release request added to gNB CLI
+  - d76d245 SD field removed from Open5gs sample configs
+  - 976522e RLC refactor
+  - ab55a3d NGAP criticality fixed for some IEs
+  - 7c03eef T3521 bug fix
+  - a8b4fdd Service request dev.
+  - 8bee2c2 Service request dev.
+  - c56364a Service request abnormal case handling improvements
+  - 94d967a Service request abnormal case handling improvements
+  - 59c8350 Service reject abnormal case handling
+  - 7bb6487 Service reject abnormal case handling
+  - 1a37ec6 Registration reject abnormal case improvement
+  - d83daf0 Service reject handling
+  - 156c4ac Service reject handling
+  - 1b9cc75 Service reject handling
+  - f1442d1 Service reject handling
+  - 4540dd4 Service reject handling
+  - 08eb211 SM refactor
+  - aec7f60 Service reject handling
+  - 5a88cd6 Service request handling
+  - eae9085 Service request handling
+  - 68e8d89 Service accept handling
+  - 52b78fe Service request initiation
+  - b276eeb Service request initiation
+  - 22e8cec Identity procedure improvement
+  - d2f7efa EServiceReqCause refactor
+  - 4fce9d0 Uplink data status handling in SM
+  - 342fbf2 Uplink data status change handling
+  - fddf4ff Uplink data status change handling
+  - 8cade27 MM state management improvement
+  - c8e18b5 EServiceReqCause added
+  - 9d6b4b0 name refactor: SRA -> RLS
+  - de9a379 SRA dev.
+  - d526e59 SRA dev.
+  - 37470ff SRA dev.
+  - 5d844b4 SRA dev.
+  - 98b30eb SRA dev.
+  - d8e46c6 SRA dev.
+  - 1dfa143 SRA dev.
+  - 63ce820 SRA dev.
+  - 05b209e SRA dev.
+  - 97e344f SRA dev.
+  - 474f515 SRA dev.
+  - f8f15b2 SRA dev.
+  - 2b737b4 SRA dev.
+  - 3220df5 SRA dev.
+  - 88666ef SRA dev.
+  - 7b7a22b SRA dev.
+  - 8f5a14c SRA dev.
+  - a07f5dd SRA dev.
+  - 43e1dc4 UE NAS refactor
+  - 9744a72 UE SRA dev.
+  - 25fc548 UE SRA dev.
+  - bf553cb UE SRA dev.
+  - bf35195 UE SRA dev.
+  - ee60a81 UE SRA dev.
+  - 330ee88 UE SRA dev.
+  - a583bd5 UE SRA dev.
+  - ca30b23 UE SRA dev.
+  - 489220a UE SRA dev.
+  - b44eeaf UE SRA dev.
+  - 505bc9c UE SRA dev.
+  - a60627d UE SRA dev.
+  - e9ec142 UE SRA dev.
+  - 6af9ea8 UE SRA dev.
+  - 72059c9 UE SRA dev.
+  - 0683203 UE SRA dev.
+  - 1a1fc96 UE SRA dev.
+  - c2eeb19 UE SRA dev.
+  - 4a5f885 UE SRA dev.
+  - 0b5cad7 UE SRA dev.
+  - 2ab318f UE SAS dev.
+  - 3a1d558 UE SAS dev.
+  - 9f17fa9 UE SAS dev.
+  - 886d8eb UE SAS dev.
+  - 8d21162 UE SAS dev.
+  - 7a34a73 UE SAS dev.
+  - fee3c02 UE SAS dev.
+  - 52eb0de UE SAS dev.
+  - 14fe33e UE SAS dev.
+  - 53548ab UE SAS refactor
+  - 7f4f508 UE SAS refactor
+  - 19059d1 UE SAS refactor
+  - eab12cc UE cell coverage detection mechanism
+  - cf9d1eb CLI cmd refactor
+  - 984b983 Release of v3.1.6
+  - 3e8711f Typo fix
+  - 19bf960 ParseInt improvement
+  - 813ae31 PS establishment over CLI
+  - e52975b PS establishment over CLI
+  - cabd27b PS establishment over CLI
+  - 96e3dd5 PS establishment over CLI
+  - 70e69d7 Options parser improvement
+  - 668787e Options parser improvement
+  - 7e3fccd Options parser improvement
+  - 51a2949 PS establishment over CLI
+  - 99328e8 PS establishment over CLI
+  - 23a5117 Options parser improvement
+  - a3248cc PS establishment over CLI
+  - e6939cc PS establishment over CLI
+  - fe39676 PS establishment over CLI
+  - 22a5e92 PS establishment over CLI
+  - bdddb08 PS establishment over CLI
+  - 720e879 PS establishment over CLI
+  - 6bc71ed CLI command dump order change
+  - bed5137 Network initiated PDU session release impl.
+  - 878f762 Network initiated PDU session release impl.
+  - ecb9d6d Network initiated PDU session release impl.
+  - 83a0128 UE initiated PDU session release impl.
+  - 0657083 UE initiated PDU session release impl.
+  - 9975193 UE initiated PDU session release impl.
+  - f6d4522 5G SM Status handling
+  - 3a88318 SM cause send implementation
+  - 38b92d1 SM cause send implementation
+  - bae4d5c PDU session establishment abnormal case improvements
+  - 3a39384 SM refactor
+  - c704906 SM refactor
+  - baf68a2 Logging improvement
+  - 0cf24f0 PDU session establishment reject improvements
+  - 8cceeae Empty RequestedNSSAI IE bug fix
+  - fcc1d04 Release of v3.1.5
+  - a7e9b12 refactor
+  - 4e71068 PDU session establishment accept improvement
+  - d8f12f6 RRC radio link failure handling improvement
+  - 1173ba7 SM refactor
+  - 5280373 T3580 handling
+  - 3b54ec4 Minor logging changes
+  - e206fc7 UE configuration change for emergency sessions and integrityMaxRate
+  - 67e6995 UE configuration change for emergency sessions and integrityMaxRate
+  - 2314b69 MM interface with SM improvement
+  - 22dc2d7 UE CLI status command improvement
+  - a0ca787 UePduSessionInfo and EPsState json serialization
+  - 020b415 UL NAS transport improvement
+  - 5b72232 PDU Session establishment improvement
+  - 21d1391 Emergency session control
+  - adbe520 MM interface functions improvement
+  - e5fdd86 SM context refactor
+  - 89825f9 UE status command improvement
+  - 8467caa NAS enum typo fix
+  - 3efaf37 MM refactor
+  - a6b060d USIM class added
+  - a4db236 MM refactor
+  - 59221cd MM refactor
+  - b92b816 MM refactor
+  - cba865d MM refactor
+  - 61d09a6 MM refactor
+  - e3df489 Comment updated
+  - d3e2efc T3502 handling
+  - ffd2187 Registration attempt counter reset handling
+  - 81e531d Registration attempt counter reset handling
+  - 0031283 eCall inactivity implementation
+  - 6f565a5 MM cycle period increased
+  - fda32ed Release of v3.1.4
+  - 4d79049 UE TUN MTU decreased to 1400
+  - 05f1c4f GTP module refactored
+  - 893a17f UE de-registration procedure abnormal case handling improvements
+  - 0120714 Version upgrade
+  - 3cb309f Registration updating abnormal case handling
+  - 2851056 Registration updating improvement
+  - 2ab93e5 Registration updating improvement
+  - 8a33651 Registration updating improvement
+  - 9d8de11 stdexcept fix
+  - e20b295 stdexcept fix
+  - c138821 stdexcept fix
+  - e771fcb stdexcept fix
+  - 5bbebdf stdexcept fix
+  - 3c04273 stdexcept fix
+  - 159e260 milenage.cpp compilation fix
+  - 238d249 Generic UE configuration update procedure improvement
+  - 7949f68 Socket::send errno EAGAIN handling
+  - 724167d Sample config files updated
+  - 0a3e417 Config file refactor
+  - e3ce881 Version upgrade
+  - 4518920 CLI UE status improvement
+  - dd4ec77 README.md updated
+  - 2083171 todo added
+  - d8e1dff Mobile storage refactor
+  - 4f597b8 UE registration abnormal cases improvement
+  - 5cc5b0d crypt.cpp compilation fix
+  - ef383cb UE de-registration bug fix
+  - 9757886 types.hpp timer comments added
+  - c9dba7d UE registration abnormal case handling
+  - 50f5a75 T3519 handling bug fix
+  - daf3094 T3519 handling bug fix
+  - ea579dc T3519 handling bug fix
+  - 7c049cd T3519 handling bug fix
+  - 17a4f08 CLI NAS timer improvement
+  - 141bb7f UE refactor
+  - 14e3b7f UE refactor
+  - 14b1acb UE registration abnormal cases improvement
+  - 845569b UE registration refactored
+  - 4ea52b6 UE registration abnormal case handling improvement
+  - b3e1263 UE registration abnormal case handling improvement
+  - e41877d Local NAS connection release implemented
+  - d2e4517 UE MM refactor
+  - b1f2626 UE MM refactor
+  - 7bbba3a Registration failure abnormal cases handling improvement
+  - e583b90 Registration failure abnormal cases handling improvement
+  - ecc88ce Registration failure abnormal cases handling improvement
+  - 78403d6 Open5gs default configuration updated for OPC
+  - 98b539c free5gc default configuration updated for OPC
+  - d231707 UE registration improvement
+  - 6afdeac UE registration improvement
+  - 8d7cc81 UE registration improvement
+  - ad6ff83 UE registration improvement
+  - 6234880 UE registration improvement
+  - 17879f1 UE registration improvement
+  - 11f6f5e UE security keys removed from logging
+  - ebb486f Security mode control improvements
+  - faff949 UE refactor
+  - d1c2caf UE refactor
+  - 0a7d05d UE refactor
+  - c04b65c Registration reject improvement
+  - 05e0584 Registration reject improvement
+  - d382532 Registration reject improvement
+  - b1aa51a Registration reject improvement
+  - afbb256 Initial registration edge cases improvements
+  - 2c1f2b6 Refactor
+  - 31196a8 Mobile storage refactor
+  - 4097d4e Authentication reject improvements
+  - e272b12 refactor
+  - 6a69de2 USIM validation on authentication procedure
+  - 053aba6 USIM validation on authentication procedure
+  - 5a95b1c Version upgraded
+  - 6f0f70c NTS performance improvement
+  - 58beec9 UE AN release bug fix
+  - e79b729 CM-IDLE procedures improvement
+  - f6cf340 T3512 handling improvement
+  - 3993c33 UE RRC release and radio link failure handling
+  - b9d0ede De-registration logging improvement
+  - 42e2d79 NAS timer expiry count bug fix
+  - 073da62 NAS timer logging improvement
+  - 6e3b9b0 gNB AN release and radio link failure handling
+  - 7c9902a PS local release implementation
+  - 97f76db PS local release implementation
+  - e121c5c PS local release improvement
+  - 9206684 UE/gNB executable refactor
+  - b48bc49 UE/gNB executable refactor
+  - 913a7b5 UE/gNB executable refactor
+  - 62d11fe UE/gNB executable refactor
+  - b41ecee UE/gNB executable refactor
+  - f0d63a8 UE/gNB executable refactor
+  - f13e054 UE/gNB executable refactor
+  - d9bfa15 UE/gNB executable refactor
+  - 54f7e1f UE/gNB executable refactor
+  - 8c7e960 UE/gNB executable refactor
+  - be27bb5 UE/gNB executable refactor
+  - 23d60da UE executable refactor
+  - a84966c UE executable refactor
+  - 30cbc8e UE executable refactor
+  - 7dfe3b0 UE de-registration improvement
+  - bafbb66 UE de-registration improvement
+  - b53c400 UE de-registration improvement
+  - d042a7a UE de-registration improvement
+  - 249203f UE de-registration improvement
+  - 45afcfe UE de-registration improvement
+  - 31993a3 UE de-registration improvement
+  - 68d4137 Network-initiated de-registration improvement
+  - 06aa099 Network-initiated de-registration improvement
+  - c9ea3b3 UE-initiated de-registration improvement
+  - c086950 README.md updated
+  - db5d8ca Bit field refactor
+  - 5c4f6b0 Bit field refactor
+  - 8699678 Bit field refactor
+  - 1e3c2f1 Bit field refactor
+  - 8264da2 Bit field refactor
+  - ea88b84 Bit field refactor
+  - 564dc93 UE and gNB types refactor
+  - a8a66f0 Overload procedure partial implementation
+  - 1c3a9c4 Overload procedure partial implementation
+  - 2c71522 Overload procedure partial implementation
+  - 39cc98a Overload procedure partial implementation
+  - 4f1f5a9 NNSF refactor
+  - ed946b1 NNSF refactor
+  - 245a233 gNB executable error yaml error handling improvement
+  - bc45dab refactor: std::file_system removal
+  - e6ebb22 cxxopts.hpp removed
+  - 694de33 cxxopts.hpp removed
+  - 85207ac Version upgrade
+  - adbafa5 CLI improvements
+  - e0f1de6 CLI improvements
+  - d9ed819 CLI improvements
+  - 146f391 CLI improvements
+  - 9ff9c6f CLI improvements
+  - cc926d1 CLI improvements
+  - 7c5ec42 CLI improvements
+  - 6759f50 CLI improvements
+  - 2900d17 CLI improvements
+  - e347ef3 CLI improvements
+  - 60f7a27 CLI improvements
+  - d7d372b CLI improvements
+  - e8a6df1 JSON utility improvement
+  - 4dc22ff JSON utility improvement
+  - 8c217ae JSON utility improvement
+  - dc9aade JSON utility improvement
+  - 850d857 JSON utility improvement
+  - c1f7cc2 JSON utility impl.
+  - 492e01c Todo added
+  - 33fb83b JSON utility impl.
+  - e1c7efc UE CLI improvement
+  - b2b2baa UE CLI improvement
+  - 9340911 UE CLI improvement
+  - 43bf2c8 GNB CLI improvement
+  - aae6ed4 GNB CLI improvement
+  - 7e45b1f RLS bug fix
+  - 267c5c4 UE CLI improvements
+  - 8ad0767 gNB CLI improvements
+  - b7a56d6 gNB CLI improvements
+  - c2374dd gNB CLI improvements
+  - 6a29246 gNB CLI improvements
+  - 2bf7f75 gNB CLI improvements
+  - f727902 gNB CLI improvements
+  - 8e2eae8 CLI visual improvements
+  - e4ddaa3 NTS pause performance improvement
+  - 3393503 NTS pause performans improvement
+  - 63a3031 gNB CLI improvement
+  - 43974a1 gNB CLI improvement
+  - e219c42 gNB CLI improvement
+  - 30aa3e2 gNB CLI improvement
+  - fc26aca gNB CLI improvement
+  - 3d621e2 gNB CLI improvement
+  - 0f5d6e7 refactor
+  - afdcc05 NTS pause capability
+  - 06f2f96 NTS improvement
+  - b9c4b40 gNB CLI improvements
+  - ad4bbf6 gNB CLI improvements
+  - 1756910 CLI visual improvements
+  - 1a668a5 ReadLine improvement
+  - 325f3d6 gNB CLI improvement
+  - 6b09b47 gNB CLI improvement
+  - 85eaac8 CLI shell colored
+  - 6bfd625 Initial print removed
+  - 39e31ed gNB CLI introduction
+  - dab099f Project constant added to constants.hpp
+  - 7f96ea2 Owner added to constants.hpp
+  - 79aac97 CLI command parser impl.
+  - 837501a Trim utility added to common
+  - 6ed0da6 CLI shell improvement
+  - 3a5ed36 Options parser improvement
+  - f855894 Options parser improvement
+  - b575011 Options parser improvement
+  - 6fa5b4f Options parser improvement
+  - 70485c2 Options parser improvement
+  - 797b4bb Options parser improvement
+  - 5bc291b Options parser improvement
+  - 1adc059 Options parser improvement
+  - 6964856 Options parser minor bug fix
+  - 44eed53 cli.cpp shell improvements
+  - e99f836 Opt utils improvement
+  - 25ab36e CLI executable improvement
+  - 5bc0ea5 Makefile updated
+  - 2256a1c Todo added
+  - a2c88fa CLI executable implemented
+  - bbe11f5 InetAddress::getPort bug fix for little endian
+  - 3adfafe Option parser refactor
+  - cb92623 Option parser improvement
+  - b668024 Option parser implementation
+  - bca02b7 pragma once added
+  - 74d6aec io.cpp bug fix
+  - 38bb44a common.cpp refactored
+  - ed6072e Constraints added to constants.hpp
+  - aba93a5 IO utils improvement
+  - 155cddc IO utils improvement
+  - 735cd3b AssertNodeName added to common utils
+  - dd94324 io.cpp added
+  - b4471da CLI executable added
+  - 3ba4bd9 constants updated
+  - 63bc41b getPort() and getAddress() added to network utils
+  - ed54433 NGAP task initialization bug fix
+  - 38efad1 README.md update
+  - 5289128 README.md update
+  - eca8611 Version upgrade
+  - e368dfd License updated
