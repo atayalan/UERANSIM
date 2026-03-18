@@ -12,6 +12,7 @@
 #include <thread>
 #include <ue/nts.hpp>
 #include <ue/tun/task.hpp>
+#include <ue/tap/task.hpp>
 #include <ue/types.hpp>
 #include <unordered_map>
 #include <utils/logger.hpp>
@@ -28,6 +29,7 @@ class UeAppTask : public NtsTask
     std::unique_ptr<Logger> m_logger;
 
     std::array<TunTask *, 16> m_tunTasks{};
+    std::array<TapTask *, 16> m_tapTasks{};
     ECmState m_cmState{};
 
     friend class UeCmdHandler;
@@ -44,6 +46,7 @@ class UeAppTask : public NtsTask
   private:
     void receiveStatusUpdate(NmUeStatusUpdate &msg);
     void setupTunInterface(const PduSession *pduSession);
+    void setupTapInterface(const PduSession *pduSession);
 };
 
 } // namespace nr::ue
