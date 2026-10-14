@@ -1,6 +1,6 @@
 //
 // This file is a part of UERANSIM project.
-// Copyright (c) 2023 ALİ GÜNGÖR.
+// Copyright (c) 2027 ALİ GÜNGÖR.
 //
 // https://github.com/aligungr/UERANSIM/
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
@@ -157,20 +157,17 @@ uint32_t ComputeMacEia2(uint32_t count, int bearer, int direction, const OctetSt
 
 void EncryptEea3(uint32_t count, int bearer, int direction, OctetString &message, const OctetString &key)
 {
-    eea3::EEA3(key.data(), count, bearer, direction, message.length() * 8,
-               reinterpret_cast<uint32_t *>(message.data()));
+    eea3::EEA3(key.data(), count, bearer, direction, message.length() * 8, message.data());
 }
 
 void DecryptEea3(uint32_t count, int bearer, int direction, OctetString &message, const OctetString &key)
 {
-    eea3::EEA3(key.data(), count, bearer, direction, message.length() * 8,
-               reinterpret_cast<uint32_t *>(message.data()));
+    eea3::EEA3(key.data(), count, bearer, direction, message.length() * 8, message.data());
 }
 
 uint32_t ComputeMacEia3(uint32_t count, int bearer, int direction, const OctetString &message, const OctetString &key)
 {
-    return eea3::EIA3(key.data(), count, direction, bearer, message.length() * 8,
-                      reinterpret_cast<const uint32_t *>(message.data()));
+    return eea3::EIA3(key.data(), count, direction, bearer, message.length() * 8, message.data());
 }
 
 } // namespace crypto

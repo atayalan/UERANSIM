@@ -1,6 +1,6 @@
 //
 // This file is a part of UERANSIM project.
-// Copyright (c) 2023 ALİ GÜNGÖR.
+// Copyright (c) 2027 ALİ GÜNGÖR.
 //
 // https://github.com/aligungr/UERANSIM/
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
@@ -154,8 +154,29 @@ static nr::ue::UeConfig *ReadConfigYaml()
         result->protectionScheme = yaml::GetInt32(config, "protectionScheme", 0, 255);
     if (yaml::HasField(config, "homeNetworkPublicKeyId"))
         result->homeNetworkPublicKeyId = yaml::GetInt32(config, "homeNetworkPublicKeyId", 0, 255);
-    if (yaml::HasField(config, "homeNetworkPublicKey"))        
-        result->homeNetworkPublicKey = OctetString::FromHex(yaml::GetString(config, "homeNetworkPublicKey", 64, 64)); 
+    if (yaml::HasField(config, "homeNetworkPublicKey"))
+    {
+        if (result->protectionScheme == 2)
+        {
+            // Profile B: a secp256r1 point, either compressed (33 bytes) or uncompressed (65 bytes)
+            // Checked here rather than through GetString's min/max so that every wrong length
+            // gets the explanatory message instead of a bare "too small"/"too large".
+            std::string keyHex = yaml::GetString(config, "homeNetworkPublicKey");
+            if (keyHex.size() != 66 && keyHex.size() != 130)
+            {
+                throw std::runtime_error("homeNetworkPublicKey must be 66 (compressed) or 130 (uncompressed) hex "
+                                         "characters when protectionScheme is 2, got " +
+                                         std::to_string(keyHex.size()));
+            }
+            result->homeNetworkPublicKey = OctetString::FromHex(keyHex);
+        }
+        else
+        {
+            // Profile A: a 32 byte X25519 public key
+            result->homeNetworkPublicKey =
+                OctetString::FromHex(yaml::GetString(config, "homeNetworkPublicKey", 64, 64));
+        }
+    }
     if (yaml::HasField(config, "imei"))
         result->imei = yaml::GetString(config, "imei", 15, 15);
     if (yaml::HasField(config, "imeiSv"))

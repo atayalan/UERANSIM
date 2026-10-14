@@ -1,6 +1,6 @@
 //
 // This file is a part of UERANSIM project.
-// Copyright (c) 2023 ALİ GÜNGÖR.
+// Copyright (c) 2027 ALİ GÜNGÖR.
 //
 // https://github.com/aligungr/UERANSIM/
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
@@ -167,6 +167,9 @@ class Eap
     const EEapType eapType;
 
     Eap(ECode code, octet id, EEapType eapType);
+
+    // The subclasses are owned and deleted through std::unique_ptr<Eap>.
+    virtual ~Eap() = default;
 };
 
 class EapAkaPrime : public Eap

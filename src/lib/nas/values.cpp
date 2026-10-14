@@ -1,12 +1,14 @@
 //
 // This file is a part of UERANSIM project.
-// Copyright (c) 2023 ALİ GÜNGÖR.
+// Copyright (c) 2027 ALİ GÜNGÖR.
 //
 // https://github.com/aligungr/UERANSIM/
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
 //
 
 #include "values.hpp"
+
+#include <stdexcept>
 
 #include <utils/octet_string.hpp>
 
@@ -465,7 +467,8 @@ VPartialTrackingAreaIdentityList VPartialTrackingAreaIdentityList::Decode(const 
         res.list10 = VPartialTrackingAreaIdentityList10::Decode(stream);
         break;
     default:
-        break;
+        // 0b11 is reserved (TS 24.501 §9.11.3.9), and there is no telling how long such a list is.
+        throw std::runtime_error("Partial tracking area identity list of the reserved type of list");
     }
     return res;
 }

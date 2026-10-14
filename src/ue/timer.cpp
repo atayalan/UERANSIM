@@ -1,6 +1,6 @@
 //
 // This file is a part of UERANSIM project.
-// Copyright (c) 2023 ALİ GÜNGÖR.
+// Copyright (c) 2027 ALİ GÜNGÖR.
 //
 // https://github.com/aligungr/UERANSIM/
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
@@ -11,6 +11,29 @@
 #include <sstream>
 
 #include <utils/common.hpp>
+
+static int GprsTimer3ToSeconds(const nas::IEGprsTimer3 &v)
+{
+    int secs = 0;
+    int val = v.timerValue;
+
+    if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_2SEC)
+        secs = val * 2;
+    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_1MIN)
+        secs = val * 60;
+    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_10MIN)
+        secs = val * 60 * 10;
+    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_1HOUR)
+        secs = val * 60 * 60;
+    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_10HOUR)
+        secs = val * 60 * 60 * 10;
+    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_30SEC)
+        secs = val * 30;
+    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_320HOUR)
+        secs = val * 60 * 60 * 320;
+
+    return secs;
+}
 
 UeTimer::UeTimer(int timerCode, bool isMmTimer, int defaultInterval)
     : m_code(timerCode), m_isMm(isMmTimer), m_interval(defaultInterval), m_startMillis(0), m_isRunning(false),
@@ -55,27 +78,16 @@ void UeTimer::start(const nas::IEGprsTimer3 &v, bool clearExpiryCount)
     if (clearExpiryCount)
         resetExpiryCount();
 
-    int secs = 0;
-    int val = v.timerValue;
-
-    if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_2SEC)
-        secs = val * 2;
-    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_1MIN)
-        secs = val * 60;
-    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_10MIN)
-        secs = val * 60 * 10;
-    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_1HOUR)
-        secs = val * 60 * 60;
-    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_10HOUR)
-        secs = val * 60 * 60 * 10;
-    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_30SEC)
-        secs = val * 30;
-    else if (v.unit == nas::EGprsTimerValueUnit3::MULTIPLES_OF_320HOUR)
-        secs = val * 60 * 60 * 320;
-
-    m_interval = secs;
+    m_interval = GprsTimer3ToSeconds(v);
     m_startMillis = utils::CurrentTimeMillis();
     m_isRunning = true;
+}
+
+// Updates the timer interval without starting the timer. Used for timer values that are signalled by the network but
+// whose start condition is controlled elsewhere (e.g. T3512).
+void UeTimer::setInterval(const nas::IEGprsTimer3 &v)
+{
+    m_interval = GprsTimer3ToSeconds(v);
 }
 
 void UeTimer::stop(bool clearExpiryCount)

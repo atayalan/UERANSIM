@@ -1,6 +1,6 @@
 //
 // This file is a part of UERANSIM project.
-// Copyright (c) 2023 ALİ GÜNGÖR.
+// Copyright (c) 2027 ALİ GÜNGÖR.
 //
 // https://github.com/aligungr/UERANSIM/
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
@@ -71,7 +71,7 @@ class NgapTask : public NtsTask
     /* Utility functions */
     void createAmfContext(const GnbAmfConfig &config);
     NgapAmfContext *findAmfContext(int ctxId);
-    void createUeContext(int ueId, int32_t &requestedSliceType);
+    void createUeContext(int ueId, int32_t requestedSliceType, const std::optional<GutiMobileIdentity> &sTmsi);
     NgapUeContext *findUeContext(int ctxId);
     NgapUeContext *findUeByRanId(int64_t ranUeNgapId);
     NgapUeContext *findUeByAmfId(int64_t amfUeNgapId);
@@ -118,7 +118,7 @@ class NgapTask : public NtsTask
     void sendContextRelease(int ueId, NgapCause cause);
 
     /* NAS Node Selection */
-    NgapAmfContext *selectAmf(int ueId, int32_t &requestedSliceType);
+    NgapAmfContext *selectAmf(int ueId, int32_t requestedSliceType, const std::optional<GutiMobileIdentity> &sTmsi);
     NgapAmfContext *selectNewAmfForReAllocation(int ueId, int initiatedAmfId, int amfSetId);
 
     /* Radio resource control */

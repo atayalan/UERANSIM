@@ -1,16 +1,16 @@
 //
 // This file is a part of UERANSIM project.
-// Copyright (c) 2023 ALİ GÜNGÖR.
+// Copyright (c) 2027 ALİ GÜNGÖR.
 //
 // https://github.com/aligungr/UERANSIM/
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
 //
 
+#include "ecies_profile_b.hpp"
 #include "mm.hpp"
+#include <fstream>
 #include <lib/nas/base.hpp>
 #include <utils/common.hpp>
-// STEPHANE
-#include <iostream>
 
 namespace nr::ue
 {
@@ -104,7 +104,8 @@ nas::IE5gsMobileIdentity NasMm::generateSuci()
     {
         ret.imsi.routingIndicator = "0000";
     }
-    if (protectionScheme == 0) {
+    if (protectionScheme == 0)
+    {
         ret.imsi.protectionSchemaId = 0;
         ret.imsi.homeNetworkPublicKeyIdentifier = 0;
         ret.imsi.schemeOutput = imsi.substr(plmn.isLongMnc ? 6 : 5);
@@ -115,6 +116,18 @@ nas::IE5gsMobileIdentity NasMm::generateSuci()
         ret.imsi.protectionSchemaId = 1;
         ret.imsi.homeNetworkPublicKeyIdentifier = homeNetworkPublicKeyId;
         ret.imsi.schemeOutput = generateSUCIProfileA(imsi.substr(plmn.isLongMnc ? 6 : 5), homeNetworkPublicKey);
+        return ret;
+    }
+    else if (protectionScheme == 2)
+    {
+        ret.imsi.protectionSchemaId = 2;
+        ret.imsi.homeNetworkPublicKeyIdentifier = homeNetworkPublicKeyId;
+        ret.imsi.schemeOutput = generateSUCIProfileB(imsi.substr(plmn.isLongMnc ? 6 : 5), homeNetworkPublicKey);
+        if (ret.imsi.schemeOutput.empty())
+        {
+            m_logger->err("SUCI Profile B generation failed");
+            return {};
+        }
         return ret;
     }
     else
@@ -131,15 +144,15 @@ std::string NasMm::generateSUCIProfileA(const std::string &imsi, const OctetStri
     Random rnd = Random::Mixed(name);
     int intLength = sizeof(int32_t);
 
-    for (int i=0; i < (X25519_KEY_SIZE/intLength); i++)
+    for (int i = 0; i < (X25519_KEY_SIZE / intLength); i++)
     {
         seed = seed + utils::IntToHex(rnd.nextI());
     }
 
     OctetString randomSeed = OctetString::FromHex(seed);
     uint8_t privateKey[X25519_KEY_SIZE];
-    uint8_t publicKey[X25519_KEY_SIZE];    
-    compact_x25519_keygen(privateKey,publicKey, randomSeed.data());
+    uint8_t publicKey[X25519_KEY_SIZE];
+    compact_x25519_keygen(privateKey, publicKey, randomSeed.data());
 
     OctetString uePrivateKey = OctetString::FromArray(privateKey, X25519_KEY_SIZE);
     OctetString uePublicKey = OctetString::FromArray(publicKey, X25519_KEY_SIZE);
@@ -163,13 +176,65 @@ std::string NasMm::generateSUCIProfileA(const std::string &imsi, const OctetStri
 
     uint8_t suciHMAC[HMAC_SHA256_DIGEST_SIZE];
     hmac_sha256(suciHMAC, msin.data(), msin.length(), macKey.data(), HMAC_SHA256_DIGEST_SIZE);
-    
+
     OctetString macTag = OctetString::FromArray(suciHMAC, 8);
     OctetString schemeOutput;
     schemeOutput.append(uePublicKey);
     schemeOutput.append(msin);
     schemeOutput.append(macTag);
     return schemeOutput.toHexString();
+}
+
+// Fills the buffer from the system CSPRNG. Returns false when that source is unavailable, so
+// callers can fail closed instead of falling back to a predictable generator.
+static bool SecureRandomBytes(uint8_t *out, size_t length)
+{
+    std::ifstream urandom{"/dev/urandom", std::ios::binary};
+    if (!urandom.is_open())
+        return false;
+
+    urandom.read(reinterpret_cast<char *>(out), static_cast<std::streamsize>(length));
+    return urandom.gcount() == static_cast<std::streamsize>(length);
+}
+
+std::string NasMm::generateSUCIProfileB(const std::string &imsiPart, const OctetString &hnPublicKey)
+{
+    // The ephemeral key is the only thing keeping the SUPI concealed, so it must come from a
+    // cryptographic source. The `Random` class used by Profile A is a 64-bit time seeded LCG,
+    // which would let anyone who observes the SUCI recover the SUPI.
+    uint8_t privKeyBuffer[32];
+    OctetString ephemeralPrivKey;
+
+    // A draw outside [1, n-1] is rejected by uECC_compute_public_key(); redraw instead of
+    // failing the registration. The odds of needing a second attempt are about 2^-32.
+    for (int attempt = 0; attempt < 8; attempt++)
+    {
+        if (!SecureRandomBytes(privKeyBuffer, sizeof(privKeyBuffer)))
+        {
+            m_logger->err("SUCI Profile B: no cryptographic random source available");
+            return {};
+        }
+
+        OctetString candidate = OctetString::FromArray(privKeyBuffer, sizeof(privKeyBuffer));
+        if (isValidProfileBPrivateKey(candidate))
+        {
+            ephemeralPrivKey = std::move(candidate);
+            break;
+        }
+    }
+
+    if (ephemeralPrivKey.length() != 32)
+    {
+        m_logger->err("SUCI Profile B: could not generate a valid ephemeral private key");
+        return {};
+    }
+
+    // BCD-encode MSIN (same as Profile A)
+    OctetString msin;
+    nas::EncodeBcdString(msin, imsiPart, ~0, false, 0);
+
+    // Call ECIES Profile B
+    return eciesProfileB(msin, hnPublicKey, ephemeralPrivKey);
 }
 
 nas::IE5gsMobileIdentity NasMm::getOrGeneratePreferredId()

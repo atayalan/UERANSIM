@@ -1,6 +1,6 @@
 //
 // This file is a part of UERANSIM project.
-// Copyright (c) 2023 ALİ GÜNGÖR.
+// Copyright (c) 2027 ALİ GÜNGÖR.
 //
 // https://github.com/aligungr/UERANSIM/
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
@@ -133,6 +133,10 @@ class OctetView
     {
         return size - index;
     }
+
+    // The next `length` octets as a view of their own, which this view then steps over. Reading past the end of the
+    // returned view throws, so whatever decodes it cannot run into the octets that follow.
+    OctetView subView(size_t length) const;
 
     OctetString readOctetString(int length) const;
     OctetString readOctetString(size_t length) const;

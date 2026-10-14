@@ -1,6 +1,6 @@
 //
 // This file is a part of UERANSIM project.
-// Copyright (c) 2023 ALİ GÜNGÖR.
+// Copyright (c) 2027 ALİ GÜNGÖR.
 //
 // https://github.com/aligungr/UERANSIM/
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
@@ -59,4 +59,13 @@ std::string OctetView::readUtf8String(size_t length) const
     if (length > static_cast<size_t>(INT32_MAX))
         throw std::out_of_range("readUtf8String: length exceeds INT32_MAX");
     return readUtf8String(static_cast<int>(length));
+}
+
+OctetView OctetView::subView(size_t length) const
+{
+    if (length > size - index)
+        throw std::out_of_range("subView: out of bounds");
+    OctetView view{data + index, length};
+    index += length;
+    return view;
 }

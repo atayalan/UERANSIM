@@ -1,6 +1,6 @@
 //
 // This file is a part of UERANSIM project.
-// Copyright (c) 2023 ALİ GÜNGÖR.
+// Copyright (c) 2027 ALİ GÜNGÖR.
 //
 // https://github.com/aligungr/UERANSIM/
 // See README, LICENSE, and CONTRIBUTING files for licensing details.
@@ -40,6 +40,10 @@ struct InetAddress
 
     [[nodiscard]] int getIpVersion() const;
     [[nodiscard]] uint16_t getPort() const;
+    [[nodiscard]] std::string toString() const;
+
+    bool operator==(const InetAddress &other) const;
+    bool operator!=(const InetAddress &other) const;
 };
 
 class Socket
