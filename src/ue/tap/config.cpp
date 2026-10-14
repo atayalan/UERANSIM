@@ -1,6 +1,5 @@
 
 #include "config.hpp"
-#include <ue/tun/config.hpp>
 
 #include <arpa/inet.h>
 #include <array>
@@ -35,6 +34,10 @@
 
 namespace nr::ue::tap
 {
+
+static constexpr int MAX_INTERFACE_COUNT = 1024;
+
+static std::mutex configMutex;
 
 static const char *NextInterfaceName(const std::string &prefix)
 {
@@ -102,7 +105,7 @@ static void TapSetUp(const char *ifName, int mtu)
 int AllocateTap(const char *ifPrefix, char **allocatedName)
 {
     // acquire the configuration lock
-    const std::lock_guard<std::mutex> lock(ue::tun::configMutex);
+    const std::lock_guard<std::mutex> lock(configMutex);
 
     const char *ifName = NextInterfaceName(ifPrefix);
     if (!ifName)
@@ -140,7 +143,7 @@ int AllocateTap(const char *ifPrefix, char **allocatedName)
 void ConfigureTap(const char *tapName, int mtu)
 {
     // acquire the configuration lock
-    const std::lock_guard<std::mutex> lock(ue::tun::configMutex);
+    const std::lock_guard<std::mutex> lock(configMutex);
 
     TapSetUp(tapName, mtu);
 }
