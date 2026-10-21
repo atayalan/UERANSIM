@@ -39,13 +39,14 @@ static constexpr int MAX_INTERFACE_COUNT = 1024;
 
 static std::mutex configMutex;
 
-static const char *NextInterfaceName(const std::string &prefix)
+static std::string NextInterfaceName(const std::string &prefix)
 {
     std::set<std::string> names;
 
-    struct ifaddrs *addrs, *tmp;
+    struct ifaddrs *addrs = nullptr, *tmp;
 
-    getifaddrs(&addrs);
+    if (getifaddrs(&addrs) < 0)
+        throw LibError("getifaddrs() failed", errno);
     tmp = addrs;
 
     while (tmp)
@@ -62,9 +63,9 @@ static const char *NextInterfaceName(const std::string &prefix)
     {
         std::string name = prefix + std::to_string(i);
         if (!names.count(name))
-            return strdup(name.c_str());
+            return name;
     }
-    return nullptr;
+    return {};
 }
 
 
@@ -105,29 +106,24 @@ static void TapSetUp(const char *ifName, int mtu)
     close(sockFd);
 }
 
-int AllocateTap(const char *ifPrefix, char **allocatedName)
+int AllocateTap(const char *ifPrefix, std::string &allocatedName)
 {
     // acquire the configuration lock
     const std::lock_guard<std::mutex> lock(configMutex);
 
-    const char *ifName = NextInterfaceName(ifPrefix);
-    if (!ifName)
+    const std::string ifName = NextInterfaceName(ifPrefix);
+    if (ifName.empty())
         throw LibError("TAP interface name could not be allocated.", errno);
-
-    char tapName[IFNAMSIZ];
-    strcpy(tapName, ifName);
 
     ifreq ifr{};
     int fd;
 
     if ((fd = open("/dev/net/tun", O_RDWR)) < 0)
-        throw LibError("Open failure /dev/net/tun");
-
-    memset(&ifr, 0, sizeof(ifr));
+        throw LibError("Open failure /dev/net/tun", errno);
 
     ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 
-    strncpy(ifr.ifr_name, tapName, IFNAMSIZ);
+    strncpy(ifr.ifr_name, ifName.c_str(), IFNAMSIZ - 1);
 
     if (ioctl(fd, TUNSETIFF, (void *)&ifr) < 0)
     {
@@ -135,11 +131,13 @@ int AllocateTap(const char *ifPrefix, char **allocatedName)
         throw LibError("ioctl(TUNSETIFF)", errno);
     }
 
-    strcpy(tapName, ifr.ifr_name);
-    if (strcmp(tapName, ifName) != 0)
+    if (ifName != ifr.ifr_name)
+    {
+        close(fd);
         throw LibError("TAP interface name could not be allocated.");
+    }
 
-    *allocatedName = strdup(tapName);
+    allocatedName = ifName;
     return fd;
 }
 

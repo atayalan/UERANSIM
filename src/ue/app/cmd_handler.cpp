@@ -186,21 +186,14 @@ void UeCmdHandler::handleCmdImpl(NmUeCliCommand &msg)
     }
     case app::UeCliCommand::PS_ESTABLISH: {
         SessionConfig config;
-        // Parse session type from command string
-        if (msg.cmd->sessionTypeStr.has_value())
+        // The parser stores the canonical type name; a command without one keeps the IPv4 behaviour.
+        auto type = app::ParsePduSessionTypeName(msg.cmd->sessionTypeStr.value_or("IPv4"));
+        if (!type)
         {
-            std::string type = msg.cmd->sessionTypeStr.value();
-            if (type == "IPv4" || type == "ipv4" || type == "IPV4" || type == "Ipv4" || type == "IpV4")
-                config.type = nas::EPduSessionType::IPV4;
-            else if (type == "Ethernet" || type == "ethernet" || type == "ETHERNET" || type == "Ethernet" || type == "EtherNet")
-                config.type = nas::EPduSessionType::ETHERNET;
-            else
-                config.type = nas::EPduSessionType::IPV4; // Default fallback
+            sendError(msg.address, "Unsupported PDU session type");
+            break;
         }
-        else
-        {
-            config.type = nas::EPduSessionType::IPV4; // Default for backward compatibility
-        }
+        config.type = *type == "Ethernet" ? nas::EPduSessionType::ETHERNET : nas::EPduSessionType::IPV4;
         config.isEmergency = msg.cmd->isEmergency;
         config.apn = msg.cmd->apn;
         config.sNssai = msg.cmd->sNssai;

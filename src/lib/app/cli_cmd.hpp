@@ -10,6 +10,7 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -81,5 +82,11 @@ std::unique_ptr<GnbCliCommand> ParseGnbCliCommand(std::vector<std::string> &&tok
 
 std::unique_ptr<UeCliCommand> ParseUeCliCommand(std::vector<std::string> &&tokens, std::string &error,
                                                 std::string &output);
+
+/**
+ * Maps a PDU session type name given on the command line ("ipv4", "Ethernet", ... in any letter case) to its canonical
+ * spelling ("IPv4" or "Ethernet"). Returns std::nullopt for any other name.
+ */
+std::optional<std::string> ParsePduSessionTypeName(const std::string &name);
 
 } // namespace app

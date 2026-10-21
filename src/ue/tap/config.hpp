@@ -15,7 +15,7 @@
 namespace nr::ue::tap
 {
 
-int AllocateTap(const char *ifPrefix, char **allocatedName);
+int AllocateTap(const char *ifPrefix, std::string &allocatedName);
 void ConfigureTap(const char *tapName, int mtu);
 
 } // namespace nr::ue::tap
