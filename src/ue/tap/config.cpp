@@ -85,6 +85,9 @@ static void TapSetUp(const char *ifName, int mtu)
         throw LibError("ioctl(SIOCGIFFLAGS)", errno);
     }
 
+    // ifr_mtu and ifr_flags share a union, so keep the flags aside while setting the MTU
+    short flags = ifr.ifr_flags;
+
     ifr.ifr_mtu = mtu;
     if (ioctl(sockFd, SIOCSIFMTU, &ifr) < 0)
     {
@@ -92,7 +95,7 @@ static void TapSetUp(const char *ifName, int mtu)
         throw LibError("ioctl(SIOCSIFMTU)", errno);
     }
 
-    ifr.ifr_flags |= IFF_UP | IFF_RUNNING;
+    ifr.ifr_flags = flags | IFF_UP | IFF_RUNNING;
     if (ioctl(sockFd, SIOCSIFFLAGS, &ifr) < 0)
     {
         close(sockFd);
