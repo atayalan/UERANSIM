@@ -317,9 +317,11 @@ void UeAppTask::setupTapInterface(const PduSession *pduSession)
     std::string requestedName = cons::TapNamePrefix;
 
     int fd = tap::TapAllocate(requestedName.c_str(), allocatedName, error);
-    if (fd == 0 || error.length() > 0)
+    if (fd < 0 || error.length() > 0)
     {
         m_logger->err("TAP allocation failure [%s]", error.c_str());
+        if (fd >= 0)
+            ::close(fd);
         return;
     }
 

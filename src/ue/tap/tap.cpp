@@ -27,7 +27,7 @@ int TapAllocate(const char *namePrefix, std::string &allocatedName, std::string 
     {
         error = e.what();
         allocatedName = "";
-        return 0;
+        return -1;
     }
 
     return fd;
