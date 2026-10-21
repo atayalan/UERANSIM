@@ -8,6 +8,8 @@
 
 #include "cli_cmd.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <optional>
 #include <sstream>
 #include <utility>
@@ -144,6 +146,18 @@ static opt::OptionsDescription DescForPsEstablish(const std::string &subCommand,
 
 namespace app
 {
+
+std::optional<std::string> ParsePduSessionTypeName(const std::string &name)
+{
+    std::string lower = name;
+    std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
+
+    if (lower == "ipv4")
+        return "IPv4";
+    if (lower == "ethernet")
+        return "Ethernet";
+    return std::nullopt;
+}
 
 static OrderedMap<std::string, CmdEntry> g_gnbCmdEntries = {
     {"info", {"Show some information about the gNB", "", DefaultDesc, false}},
@@ -289,9 +303,8 @@ static std::unique_ptr<UeCliCommand> UeCliParseImpl(const std::string &subCmd, c
             CMD_ERR("PDU session type is expected")
         if (options.positionalCount() > 15)
             CMD_ERR("Only one PDU session type is expected")
-        std::string type = options.getPositional(0);
-        if (type != "IPv4" && type != "ipv4" && type != "IPV4" && type != "Ipv4" && type != "IpV4" &&
-            type != "Ethernet" && type != "ethernet" && type != "ETHERNET" && type != "Ethernet" && type != "EtherNet")
+        auto type = ParsePduSessionTypeName(options.getPositional(0));
+        if (!type)
             CMD_ERR("Only IPv4 and Ethernet are supported")
         cmd->sessionTypeStr = type;
         cmd->isEmergency = options.hasFlag('e', "emergency");

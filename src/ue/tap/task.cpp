@@ -107,7 +107,7 @@ void TapTask::onLoop()
         ssize_t res = ::write(m_fd, w.data.data(), w.data.length());
         if (res < 0)
             push(TapNmError(GetTapErrorMessage("TAP device could not write")));
-        else if (res != w.data.length())
+        else if (res != static_cast<ssize_t>(w.data.length()))
             push(TapNmError(GetTapErrorMessage("TAP device partially written")));
         break;
     }

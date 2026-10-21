@@ -17,11 +17,9 @@ namespace nr::ue::tap
 int TapAllocate(const char *namePrefix, std::string &allocatedName, std::string &error)
 {
     int fd;
-    char *name = nullptr;
     try
     {
-        fd = tap::AllocateTap(namePrefix, &name);
-        allocatedName = std::string{name};
+        fd = tap::AllocateTap(namePrefix, allocatedName);
     }
     catch (const LibError &e)
     {
