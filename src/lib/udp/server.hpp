@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 #include <utils/network.hpp>
 
@@ -21,11 +22,14 @@ class UdpServer
 
   public:
     UdpServer();
+    // Takes the IPv6 socket factory so tests can simulate a host without IPv6.
+    explicit UdpServer(const std::function<Socket()> &createUdp6);
     UdpServer(const std::string &address, uint16_t port);
     ~UdpServer();
 
     int Receive(uint8_t *buffer, size_t bufferSize, int timeoutMs, InetAddress &outPeerAddress) const;
     void Send(const InetAddress &address, const uint8_t *buffer, size_t bufferSize) const;
+    [[nodiscard]] bool HasIpv6() const;
 };
 
 } // namespace udp
