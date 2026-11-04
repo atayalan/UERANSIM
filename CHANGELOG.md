@@ -1,3 +1,76 @@
+# Changelog for 1.0.3
+
+## Issues
+  - 5a91ec5 G1-4421 udp: tolerate only EAFNOSUPPORT for the IPv6 socket
+  - a46debc G1-4421 ci: skip the Go-only vulnerability check
+  - 9ed8747 G1-4421 ci: run the build stage in the fgcdev container
+  - e2d3607 G1-4421 udp: run IPv4-only when the host has IPv6 disabled
+  - e2e0712 fix: harden TAP allocation and unify PDU session type parsing
+  - 9a8e0a7 fix: address TAP review (MTU ioctl flags, fd 0 allocation)
+  - 39f61ef fix: build ethernet PDU (TAP) support against current tun API
+  - 7886abd Feat: add ethernet pdu support via TAP
+  - da3728a Take a cell only from a gNB in gnbSearchList
+  - 403113d Give rls::RlsMessage a virtual destructor
+  - bd57ac3 Fix the EAP decoder's handling of one-unit and unknown attributes
+  - 817a225 Follow TS 24.501 §7.6 and §7.7 when decoding NAS IEs
+  - c706a0b Update the copyright year to 2027
+  - e9e7252 Keep 128-NEA1, 128-NEA3 and 128-NIA3 within the message
+  - e4ce49b Add a CI workflow
+  - 3f6003c Add sanitizer and coverage build options and build in parallel
+  - 1f22238 Move the unit tests to doctest and a top-level test directory
+  - 282c775 Vendor doctest 2.5.3
+  - d5a3ba6 Add a make test target and improve the test harness output
+  - 3112f2c Clean up the remaining SUCI Profile B review points
+  - 3a020b1 Address review findings on SUCI Profile B
+  - 1ae9bf2 Only decode Initial NAS messages that can carry a requested NSSAI
+  - 8364007 Enter ATTEMPTING-REGISTRATION-UPDATE on mobility reject with cause #22
+  - ce826f2 Reset registration attempt counter on registration reject with cause #22
+  - b17d8f4 Keep applying the network signalled T3512 value
+  - df58e0a validate PDU session resource setup abnormal cases
+  - 5a17736 Update deployment.yaml
+  - 681f7df Fix T3512 handling in CM_CONNECTED and registration attempt counter reset
+  - 420d403 gnb/ngap: route Initial NAS that carries no requested NSSAI, and stop re-encoding it
+  - 417227d fix(gnb): validate NGAP PDU session setup abnormal cases
+  - 268d37c Fix License section typo
+  - bd6e867 feat(gnb/ngap): advertise NR-NTN RAT-Information in NGSetupRequest
+  - 02ac500 test: add regression suite
+  - 7d99000 test(ecies): add soft-fail error path tests for eciesProfileB
+  - 7f6cf53 feat(config): scheme-aware homeNetworkPublicKey length validation
+  - b182b03 feat(nas-mm): add generateSUCIProfileB and scheme-2 branch in generateSuci()
+  - 1e572d1 feat(ecies): implement eciesProfileB with bit-exact TS 33.501 §C.4 vector test
+  - 8fc9d85 feat(ecies): add eciesProfileB helper contract (header + stub + linkage test)
+  - 4ba1e5a feat(crypto): vendor micro-ecc (secp256r1-only, pure-C) + smoke test
+  - 601b1bc feat(tests): add nr-tests harness for test-driven Profile B development
+  - d9e7e4e rrc: fix copyright header encoding (UTF-8)
+  - 2a36fb9 rls: fix copyright header encoding (UTF-8)
+  - f16d738 nts: fix copyright header encoding (UTF-8)
+  - 5a22da2 rrc: handle SIGNAL_LOST in RLS SAP to invoke RLF handler
+  - d9351c0 rls: forward SIGNAL_LOST to RRC task
+  - 394716c nts: add SIGNAL_LOST to NmGnbRlsToRrc enum
+  - 6bf5a1a Update UERANSIM version badge to v3.3.0
+  - 645d34d Update version information to 3.3.0
+  - 9ebf156 Add UE TUN interface configuration options
+  - a7f6554 Add namespace configuration for UE TUN interface
+  - 79b04ad fix(ue/tun): reclaim only stale namespaces via TUN-device ownership check
+  - a6ccfee fix(ue/tun): use -1 fd sentinel and per-PSI namespace with ownership-safe cleanup
+  - f7ba3d0 fix(ue/tun): address review comments on namespace TUN support
+  - 2c01fba Add NR-NTN TAI Information extension to UserLocationInformation
+  - 4a90131 Refactor DnnFromApn for improved label parsing
+  - ca1a66f Security hardening for Radio Link Simulation (RLS) layer.
+  - 72ab097 feat: add optional UE TUN network namespace support with teardown cleanup
+  - b4157fa README file updated
+  - d54fd44 Add LICENSE file
+  - 417ae5e Update README file
+  - 8ffce53 Fix: Missing header
+  - 27b496c Fixes #766
+  - 89f02d7 Fix CalculateAkmaKey function: remove reference to inexistent rid
+  - b5ec52e Akma derivation implementation
+  - 6f66520 Update README.md
+  - 635e5fa Update README.md
+  - 7fbfff7 Update README.md
+  - 1156384 Update README.md
+  - 2602675 Update README.md
+  - 4820ee7 Encode DNN as Labels
 # Changelog for 1.0.2
 
 ## Issues
