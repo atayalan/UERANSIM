@@ -10,12 +10,22 @@
 
 #include <cstring>
 #include <utils/common.hpp>
+#include <utils/libc_error.hpp>
 
 namespace udp
 {
 
-UdpServer::UdpServer() : sockets{Socket::CreateUdp4(), Socket::CreateUdp6()}
+UdpServer::UdpServer() : sockets{Socket::CreateUdp4()}
 {
+    // A host booted with ipv6.disable=1 cannot create AF_INET6 sockets; run IPv4-only there
+    // instead of aborting, since Send() already looks up a socket of the peer's IP version.
+    try
+    {
+        sockets.push_back(Socket::CreateUdp6());
+    }
+    catch (const LibError &)
+    {
+    }
 }
 
 UdpServer::UdpServer(const std::string &address, uint16_t port) : sockets{Socket::CreateAndBindUdp({address, port})}
