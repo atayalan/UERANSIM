@@ -12,7 +12,13 @@
 
 class LibError : public std::runtime_error
 {
+  private:
+    int err;
+
   public:
     explicit LibError(const std::string &what);
     LibError(const std::string &what, int err);
+
+    // The errno the error was raised with, or 0 if none was given.
+    [[nodiscard]] int error() const noexcept;
 };

@@ -34,6 +34,8 @@ RlsUdpTask::RlsUdpTask(TaskBase *base, RlsSharedContext *shCtx, const std::vecto
     m_logger = base->logBase->makeUniqueLogger(base->config->getLoggerPrefix() + "rls-udp");
 
     m_server = std::make_unique<udp::UdpServer>();
+    if (!m_server->HasIpv6())
+        m_logger->warn("IPv6 is not available on this host, RLS will reach IPv4 gNBs only");
 
     for (auto &ip : searchSpace)
         m_searchSpace.emplace_back(ip, cons::RadioLinkPort);

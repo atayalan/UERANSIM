@@ -1,8 +1,9 @@
 @Library('atayalan-ci') _
 ci {
-     lang "customize"
+     lang "fgcdev"
      requires "customize", cmd: "cat", image: "fgcdev:0.2.23"
      stage "utit", enabled: "false"
      stage "codeCoverage", enabled: "false"
+     stage "vulnerabilityCheck", enabled: "false"
 }
 
