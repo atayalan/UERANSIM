@@ -70,6 +70,8 @@ class NasMm
     int64_t m_lastTimePlmnSearchFailureLogged{};
     // Last time MM state changed
     int64_t m_lastTimeMmStateChange{};
+    // 記錄 --mobi_update 啟用的一次性測試是否已觸發；false 表示尚未執行。
+    bool m_testForceMobilityUpdateDone{};
 
     friend class UeCmdHandler;
     friend class NasSm;
@@ -204,6 +206,9 @@ class NasMm
   private: /* Service Access Point */
     void handleRrcEvent(const NmUeRrcToNas &msg);
     void handleNasEvent(const NmUeNasToNas &msg);
+
+  private: /* Handover */
+    void handleRrcHandoverCommand();
 };
 
 } // namespace nr::ue

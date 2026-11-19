@@ -52,6 +52,7 @@
 #include <asn/ngap/ASN_NGAP_UEContextReleaseCommand.h>
 #include <asn/ngap/ASN_NGAP_UEContextReleaseComplete.h>
 #include <asn/ngap/ASN_NGAP_UEContextReleaseRequest.h>
+#include <asn/ngap/ASN_NGAP_UESecurityCapabilities.h>
 
 namespace nr::gnb
 {
@@ -63,6 +64,21 @@ void NgapTask::receiveInitialContextSetup(int amfId, ASN_NGAP_InitialContextSetu
     auto *ue = findUeByNgapIdPair(amfId, ngap_utils::FindNgapIdPair(msg));
     if (ue == nullptr)
         return;
+
+    auto *securityIe = asn::ngap::GetProtocolIe(msg, ASN_NGAP_ProtocolIE_ID_id_UESecurityCapabilities);
+    if (securityIe)
+    {
+        const auto &caps = securityIe->UESecurityCapabilities;
+        ue->securityCapabilities.valid = true;
+        ue->securityCapabilities.nrEncryptionAlgorithms =
+            static_cast<uint16_t>(asn::GetBitStringInt<16>(caps.nRencryptionAlgorithms));
+        ue->securityCapabilities.nrIntegrityProtectionAlgorithms =
+            static_cast<uint16_t>(asn::GetBitStringInt<16>(caps.nRintegrityProtectionAlgorithms));
+        ue->securityCapabilities.eutraEncryptionAlgorithms =
+            static_cast<uint16_t>(asn::GetBitStringInt<16>(caps.eUTRAencryptionAlgorithms));
+        ue->securityCapabilities.eutraIntegrityProtectionAlgorithms =
+            static_cast<uint16_t>(asn::GetBitStringInt<16>(caps.eUTRAintegrityProtectionAlgorithms));
+    }
 
     auto w = std::make_unique<NmGnbNgapToGtp>(NmGnbNgapToGtp::UE_CONTEXT_UPDATE);
     w->update = std::make_unique<GtpUeContextUpdate>(true, ue->ctxId, ue->ueAmbr);
@@ -260,6 +276,21 @@ void NgapTask::receiveContextModification(int amfId, ASN_NGAP_UEContextModificat
     if (ue == nullptr)
         return;
 
+    auto *securityIe = asn::ngap::GetProtocolIe(msg, ASN_NGAP_ProtocolIE_ID_id_UESecurityCapabilities);
+    if (securityIe)
+    {
+        const auto &caps = securityIe->UESecurityCapabilities;
+        ue->securityCapabilities.valid = true;
+        ue->securityCapabilities.nrEncryptionAlgorithms =
+            static_cast<uint16_t>(asn::GetBitStringInt<16>(caps.nRencryptionAlgorithms));
+        ue->securityCapabilities.nrIntegrityProtectionAlgorithms =
+            static_cast<uint16_t>(asn::GetBitStringInt<16>(caps.nRintegrityProtectionAlgorithms));
+        ue->securityCapabilities.eutraEncryptionAlgorithms =
+            static_cast<uint16_t>(asn::GetBitStringInt<16>(caps.eUTRAencryptionAlgorithms));
+        ue->securityCapabilities.eutraIntegrityProtectionAlgorithms =
+            static_cast<uint16_t>(asn::GetBitStringInt<16>(caps.eUTRAintegrityProtectionAlgorithms));
+    }
+
     auto *ie = asn::ngap::GetProtocolIe(msg, ASN_NGAP_ProtocolIE_ID_id_UEAggregateMaximumBitRate);
     if (ie)
     {
@@ -283,13 +314,16 @@ void NgapTask::receiveContextModification(int amfId, ASN_NGAP_UEContextModificat
     m_base->gtpTask->push(std::move(w));
 }
 
-void NgapTask::sendContextRelease(int ueId, NgapCause cause)
+bool NgapTask::sendContextRelease(int ueId, NgapCause cause)
 {
     m_logger->debug("Sending UE Context release request (NG-RAN node initiated)");
 
     auto *ue = findUeContext(ueId);
     if (ue == nullptr)
-        return;
+    {
+        m_logger->warn("UE Context release request for UE[%d] not sent: the UE context does not exist", ueId);
+        return false;
+    }
 
     std::vector<ASN_NGAP_UEContextReleaseRequest_IEs *> ies;
 
@@ -318,7 +352,7 @@ void NgapTask::sendContextRelease(int ueId, NgapCause cause)
     ies.push_back(ieCause);
 
     auto *pdu = asn::ngap::NewMessagePdu<ASN_NGAP_UEContextReleaseRequest>(ies);
-    sendNgapUeAssociated(ueId, pdu);
+    return sendNgapUeAssociated(ueId, pdu);
 }
 
 } // namespace nr::gnb

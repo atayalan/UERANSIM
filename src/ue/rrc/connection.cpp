@@ -13,6 +13,10 @@
 #include <ue/nts.hpp>
 #include <utils/random.hpp>
 
+#include <asn/rrc/ASN_RRC_RRCReconfiguration-IEs.h>
+#include <asn/rrc/ASN_RRC_RRCReconfiguration.h>
+#include <asn/rrc/ASN_RRC_RRCReconfigurationComplete-IEs.h>
+#include <asn/rrc/ASN_RRC_RRCReconfigurationComplete.h>
 #include <asn/rrc/ASN_RRC_RRCSetup-IEs.h>
 #include <asn/rrc/ASN_RRC_RRCSetup.h>
 #include <asn/rrc/ASN_RRC_RRCSetupComplete-IEs.h>
@@ -148,6 +152,56 @@ void UeRrcTask::receiveRrcRelease(const ASN_RRC_RRCRelease &msg)
     m_logger->debug("RRC Release received");
     m_state = ERrcState::RRC_IDLE;
     m_base->nasTask->push(std::make_unique<NmUeRrcToNas>(NmUeRrcToNas::RRC_CONNECTION_RELEASE));
+}
+
+void UeRrcTask::receiveRrcReconfiguration(const ASN_RRC_RRCReconfiguration &msg)
+{
+    if (msg.criticalExtensions.present !=
+            ASN_RRC_RRCReconfiguration__criticalExtensions_PR_rrcReconfiguration ||
+        msg.criticalExtensions.choice.rrcReconfiguration == nullptr)
+    {
+        m_logger->err("Missing RRCReconfiguration information");
+        return;
+    }
+    auto *extension = msg.criticalExtensions.choice.rrcReconfiguration->lateNonCriticalExtension;
+    if (extension == nullptr || extension->size != 4)
+    {
+        m_logger->err("Missing simulator handover target extension");
+        return;
+    }
+    // 四個 byte 都屬於模擬器目標識別碼，不再截取最後一個 byte。
+    OctetString infos = asn::GetOctetString(*extension);
+    uint32_t targetId = infos.get4UI(0);
+    if (targetId == 0 || targetId > 0x7FFFFFFF)
+    {
+        m_logger->err("Invalid simulator handover target");
+        return;
+    }
+    int cellId = static_cast<int>(targetId);
+    m_lastTid = msg.rrc_TransactionIdentifier;
+    m_logger->debug("RRC Handover Command received");
+    performCellChange(cellId);
+}
+
+void UeRrcTask::sendHandoverConfirmMessage()
+{
+    m_logger->debug("Sending RRC Handover Confirm to target gNB");
+
+    auto *pdu = asn::New<ASN_RRC_UL_DCCH_Message>();
+    pdu->message.present = ASN_RRC_UL_DCCH_MessageType_PR_c1;
+    pdu->message.choice.c1 = asn::NewFor(pdu->message.choice.c1);
+    pdu->message.choice.c1->present = ASN_RRC_UL_DCCH_MessageType__c1_PR_rrcReconfigurationComplete;
+
+    auto &complete = pdu->message.choice.c1->choice.rrcReconfigurationComplete =
+        asn::New<ASN_RRC_RRCReconfigurationComplete>();
+    complete->rrc_TransactionIdentifier = m_lastTid;
+    complete->criticalExtensions.present =
+        ASN_RRC_RRCReconfigurationComplete__criticalExtensions_PR_rrcReconfigurationComplete;
+    complete->criticalExtensions.choice.rrcReconfigurationComplete =
+        asn::New<ASN_RRC_RRCReconfigurationComplete_IEs>();
+
+    sendRrcMessage(pdu);
+    asn::Free(asn_DEF_ASN_RRC_UL_DCCH_Message, pdu);
 }
 
 void UeRrcTask::handleEstablishmentFailure()

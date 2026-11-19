@@ -30,6 +30,7 @@ extern "C"
 
     struct ASN_RRC_RRCSetupRequest;
     struct ASN_RRC_RRCSetupComplete;
+    struct ASN_RRC_RRCReconfigurationComplete;
     struct ASN_RRC_ULInformationTransfer;
 }
 
@@ -79,6 +80,11 @@ class GnbRrcTask : public NtsTask
 
     void receiveUplinkInformationTransfer(int ueId, const ASN_RRC_ULInformationTransfer &msg);
 
+    /* Handover control */
+    // False when the command could not be built or sent; the caller then tells the handover owner (NGAP or XnAP).
+    bool handleHandoverCommand(int ueId, const OctetString &targetCellContainer, bool isN2);
+    void receiveRrcHandoverConfirm(int ueId, const ASN_RRC_RRCReconfigurationComplete &msg);
+
     /* RRC channel send message */
     void sendRrcMessage(ASN_RRC_BCCH_BCH_Message *msg);
     void sendRrcMessage(ASN_RRC_BCCH_DL_SCH_Message *msg);
@@ -103,6 +109,7 @@ class GnbRrcTask : public NtsTask
     RrcUeContext *createUe(int id);
     RrcUeContext *tryFindUe(int id);
     RrcUeContext *findUe(int id);
+    void releaseHandoverSource(int ueId);
 
     /* Connection Control */
     void receiveRrcSetupRequest(int ueId, const ASN_RRC_RRCSetupRequest &msg);

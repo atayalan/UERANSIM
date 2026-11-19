@@ -8,6 +8,8 @@
 
 #include "scoped_thread.hpp"
 
+#include <exception>
+
 #include <iostream>
 #include <stdexcept>
 

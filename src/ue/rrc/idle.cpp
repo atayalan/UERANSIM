@@ -110,6 +110,98 @@ void UeRrcTask::performCellSelection()
     }
 }
 
+void UeRrcTask::performCellChange(int newCellId)
+{
+    auto lastCell = m_base->shCtx.currentCell.get();
+
+    if (newCellId == 0)
+    {
+        m_logger->err("Could not change cell: target cell id is 0");
+        return;
+    }
+    if (newCellId == lastCell.cellId)
+    {
+        m_logger->err("Could not change cell: target cell[%d] is already serving", newCellId);
+        return;
+    }
+
+    auto target = m_cellDesc.find(newCellId);
+    if (target == m_cellDesc.end())
+    {
+        m_logger->err("Could not change cell: target cell[%d] is not in RLS coverage", newCellId);
+        return;
+    }
+
+    auto &handoverCell = target->second;
+    ActiveCellInfo cellInfo{};
+    cellInfo.cellId = newCellId;
+    cellInfo.plmn = handoverCell.sib1.plmn;
+    cellInfo.tac = handoverCell.sib1.tac;
+
+    if (isSuitable(handoverCell))
+        cellInfo.category = ECellCategory::SUITABLE_CELL;
+    else if (isAcceptable(handoverCell))
+        cellInfo.category = ECellCategory::ACCEPTABLE_CELL;
+    else
+    {
+        m_logger->err("Could not change cell: target cell[%d] is neither suitable nor acceptable", newCellId);
+        return;
+    }
+
+    m_logger->info("Changing serving cell from cell[%d] to cell[%d]", lastCell.cellId, newCellId);
+    m_base->shCtx.currentCell.set(cellInfo);
+    m_state = ERrcState::RRC_CONNECTED;
+
+    auto rls = std::make_unique<NmUeRrcToRls>(NmUeRrcToRls::ASSIGN_CURRENT_CELL);
+    rls->cellId = newCellId;
+    m_base->rlsTask->push(std::move(rls));
+
+    m_base->nasTask->push(std::make_unique<NmUeRrcToNas>(NmUeRrcToNas::RRC_HANDOVER_COMMAND));
+    m_base->rrcTask->push(std::make_unique<NmUeRrcToRrc>(NmUeRrcToRrc::HANDOVER_CONFIRM));
+}
+
+bool UeRrcTask::isSuitable(UeCellDesc &cell)
+{
+    Plmn selectedPlmn = m_base->shCtx.selectedPlmn.get();
+    Tai tai{cell.sib1.plmn, cell.sib1.tac};
+
+    if (!cell.sib1.hasSib1 || !cell.mib.hasMib || cell.sib1.plmn != selectedPlmn || cell.mib.isBarred ||
+        cell.sib1.isReserved)
+        return false;
+
+    if (m_base->shCtx.forbiddenTaiRoaming.get<bool>([&tai](auto &item) {
+            return std::any_of(item.begin(), item.end(), [&tai](auto &element) { return element == tai; });
+        }))
+        return false;
+
+    if (m_base->shCtx.forbiddenTaiRps.get<bool>([&tai](auto &item) {
+            return std::any_of(item.begin(), item.end(), [&tai](auto &element) { return element == tai; });
+        }))
+        return false;
+
+    return true;
+}
+
+bool UeRrcTask::isAcceptable(UeCellDesc &cell)
+{
+    Tai tai{cell.sib1.plmn, cell.sib1.tac};
+
+    if (!cell.sib1.hasSib1 || !cell.mib.hasMib || cell.mib.isBarred || cell.sib1.isReserved)
+        return false;
+
+    if (m_base->shCtx.forbiddenTaiRoaming.get<bool>([&tai](auto &item) {
+            return std::any_of(item.begin(), item.end(), [&tai](auto &element) { return element == tai; });
+        }))
+        return false;
+
+    if (m_base->shCtx.forbiddenTaiRps.get<bool>([&tai](auto &item) {
+            return std::any_of(item.begin(), item.end(), [&tai](auto &element) { return element == tai; });
+        }))
+        return false;
+
+    return true;
+}
+
 bool UeRrcTask::lookForSuitableCell(ActiveCellInfo &cellInfo, CellSelectionReport &report)
 {
     Plmn selectedPlmn = m_base->shCtx.selectedPlmn.get();

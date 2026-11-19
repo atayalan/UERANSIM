@@ -8,6 +8,9 @@
 
 #include "libc_error.hpp"
 
+#include <cstdlib>
+#include <string>
+
 #include <cstring>
 #include <stdexcept>
 

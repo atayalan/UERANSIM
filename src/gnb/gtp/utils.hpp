@@ -32,6 +32,13 @@ inline int GetPsi(uint64_t sessionResInd)
     return static_cast<int>(sessionResInd & 0xFFFFFFFFuLL);
 }
 
+/**
+ * Tells whether a PDU read from the UE may be sent uplink on a session of the given type. Nothing empty is sent. An IPv4
+ * session carries IPv4 packets only (IP version in the first nibble); an Ethernet session carries raw L2 frames, whose
+ * first octet is the start of a MAC address and says nothing about the payload.
+ */
+bool IsUplinkPduAllowed(PduSessionType sessionType, const OctetString &pdu);
+
 class PduSessionTree
 {
     std::unordered_map<uint32_t, uint64_t> mapByDownTeid;

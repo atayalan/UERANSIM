@@ -10,6 +10,8 @@
 
 #include <algorithm>
 #include <lib/nas/utils.hpp>
+#include <ue/nas/sm/session_status.hpp>
+#include <ue/nas/sm/sm.hpp>
 #include <ue/nas/task.hpp>
 
 namespace nr::ue
@@ -434,6 +436,13 @@ void NasMm::receiveInitialRegistrationAccept(const nas::RegistrationAccept &msg)
         m_registeredForEmergency = true;
 
     m_logger->info("%s is successful", nas::utils::EnumToString(regType));
+
+    if (m_base->config->testMobilityUpdate && !m_testForceMobilityUpdateDone &&
+        regType == nas::ERegistrationType::INITIAL_REGISTRATION)
+    {
+        m_testForceMobilityUpdateDone = true;
+        mobilityUpdatingRequired(ERegUpdateCause::ENTER_UNLISTED_TRACKING_AREA);
+    }
 }
 
 void NasMm::receiveMobilityRegistrationAccept(const nas::RegistrationAccept &msg)
@@ -573,6 +582,18 @@ void NasMm::receiveMobilityRegistrationAccept(const nas::RegistrationAccept &msg
     // The service request attempt counter shall be reset when registration procedure for mobility and periodic
     // registration update is successfully completed
     m_serCounter = 0;
+
+    // "If the REGISTRATION ACCEPT message contains a PDU session status IE, the UE shall locally release every PDU
+    // session that is not marked active in it." Sessions the network still lists, such as an Ethernet session and
+    // its TAP interface, are left untouched; an accept without the IE releases nothing.
+    if (msg.pduSessionStatus.has_value())
+    {
+        for (int psi : nas_sm::SessionsToReleaseFromStatus(m_sm->getPduSessionStatus(), msg.pduSessionStatus->psi))
+        {
+            m_logger->warn("Network reports PDU session[%d] inactive in Registration Accept, releasing locally", psi);
+            m_sm->localReleaseSession(psi);
+        }
+    }
 
     if (sendComplete)
         sendNasMessage(nas::RegistrationComplete{});

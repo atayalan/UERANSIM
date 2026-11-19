@@ -55,7 +55,12 @@ jobs:
         run: cmake -S . -B cmake-build-asan -DCMAKE_BUILD_TYPE=Debug -DUERANSIM_SANITIZE=address,undefined
       - name: Build
         run: cmake --build cmake-build-asan --target nr-tests --parallel "$(nproc)"
+      # asn1c guards its recursion depth by comparing the address of a local with one in its own codec context, which
+      # has to be on the stack. ASan's fake stack (detect_stack_use_after_return, on by default since GCC 13) moves
+      # locals to the heap, so every ASN.1 decode fails with RC_FAIL. The guard stays in the code that ships.
       - name: Test
+        env:
+          ASAN_OPTIONS: detect_stack_use_after_return=0
         run: ctest --test-dir cmake-build-asan --output-on-failure --no-tests=error
 
   coverage:

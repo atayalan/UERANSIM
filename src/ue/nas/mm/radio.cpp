@@ -214,6 +214,12 @@ void NasMm::handleRrcConnectionRelease()
     switchCmState(ECmState::CM_IDLE);
 }
 
+void NasMm::handleRrcHandoverCommand()
+{
+    // Keep the current CM/MM state across intra-5GS radio relocation.
+    // A future mobility update can be added here if the handover changes TAI.
+}
+
 void NasMm::handleRrcEstablishmentFailure()
 {
     m_logger->err("RRC Establishment failure");

@@ -22,7 +22,7 @@ static constexpr const int BUFFER_SIZE = 16384;
 
 static constexpr const int LOOP_PERIOD = 1000;
 static constexpr const int RECEIVE_TIMEOUT = 200;
-static constexpr const int HEARTBEAT_THRESHOLD = 2000; // (LOOP_PERIOD + RECEIVE_TIMEOUT)'dan büyük olmalı
+static constexpr const int HEARTBEAT_THRESHOLD = 10000; // 容許忙碌時的 heartbeat 延遲，單位為毫秒。
 
 static constexpr const int MIN_ALLOWED_DBM = -120;
 
@@ -45,7 +45,8 @@ namespace nr::gnb
 {
 
 RlsUdpTask::RlsUdpTask(TaskBase *base, uint64_t sti, Vector3 phyLocation)
-    : m_server{}, m_ctlTask{}, m_sti{sti}, m_phyLocation{phyLocation}, m_lastLoop{}, m_stiToUe{}, m_ueMap{}, m_newIdCounter{}
+    : m_server{}, m_ctlTask{}, m_gnbId{base->config->getGnbId()}, m_sti{sti}, m_phyLocation{phyLocation}, m_lastLoop{},
+      m_stiToUe{}, m_ueMap{}, m_newIdCounter{}
 {
     m_logger = base->logBase->makeUniqueLogger("rls-udp");
 
@@ -93,6 +94,25 @@ void RlsUdpTask::onQuit()
     delete m_server;
 }
 
+int RlsUdpTask::reserveNewUeId()
+{
+    return m_newIdCounter;
+}
+
+uint64_t RlsUdpTask::stiOf(int ueId) const
+{
+    std::lock_guard lock{m_idMutex};
+    auto it = m_ueMap.find(ueId);
+    return it == m_ueMap.end() ? 0 : it->second.sti;
+}
+
+int RlsUdpTask::ueIdOf(uint64_t sti) const
+{
+    std::lock_guard lock{m_idMutex};
+    auto it = m_stiToUe.find(sti);
+    return it == m_stiToUe.end() ? 0 : it->second;
+}
+
 void RlsUdpTask::receiveRlsPdu(const InetAddress &addr, std::unique_ptr<rls::RlsMessage> &&msg)
 {
     if (msg->msgType == rls::EMessageType::HEARTBEAT)
@@ -120,10 +140,13 @@ void RlsUdpTask::receiveRlsPdu(const InetAddress &addr, std::unique_ptr<rls::Rls
 
             int ueId = ++m_newIdCounter;
 
-            m_stiToUe[msg->sti] = ueId;
-            m_ueMap[ueId].sti = msg->sti;
-            m_ueMap[ueId].address = addr;
-            m_ueMap[ueId].lastSeen = utils::CurrentTimeMillis();
+            {
+                std::lock_guard lock{m_idMutex};
+                m_stiToUe[msg->sti] = ueId;
+                m_ueMap[ueId].sti = msg->sti;
+                m_ueMap[ueId].address = addr;
+                m_ueMap[ueId].lastSeen = utils::CurrentTimeMillis();
+            }
 
             auto w = std::make_unique<NmGnbRlsToRls>(NmGnbRlsToRls::SIGNAL_DETECTED);
             w->ueId = ueId;
@@ -132,6 +155,7 @@ void RlsUdpTask::receiveRlsPdu(const InetAddress &addr, std::unique_ptr<rls::Rls
 
         rls::RlsHeartBeatAck ack{m_sti};
         ack.dbm = dbm;
+        ack.gnbId = m_gnbId;
 
         sendRlsPdu(addr, ack);
         return;
@@ -171,11 +195,14 @@ void RlsUdpTask::heartbeatCycle(int64_t time)
         }
     }
 
-    for (uint64_t sti : lostSti)
-        m_stiToUe.erase(sti);
+    {
+        std::lock_guard lock{m_idMutex};
+        for (uint64_t sti : lostSti)
+            m_stiToUe.erase(sti);
 
-    for (int ueId : lostUeId)
-        m_ueMap.erase(ueId);
+        for (int ueId : lostUeId)
+            m_ueMap.erase(ueId);
+    }
 
     for (int ueId : lostUeId)
     {

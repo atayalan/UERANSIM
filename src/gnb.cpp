@@ -9,6 +9,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <unistd.h>
 
@@ -66,6 +67,40 @@ static nr::gnb::GnbConfig *ReadConfigYaml()
         c.address = yaml::GetIpAddress(amfConfig, "address");
         c.port = static_cast<uint16_t>(yaml::GetInt32(amfConfig, "port", 1024, 65535));
         result->amfConfigs.push_back(c);
+    }
+
+    if (yaml::HasField(config, "xn"))
+    {
+        auto xn = config["xn"];
+        result->xn.enabled = yaml::GetBool(xn, "enabled");
+
+        if (result->xn.enabled)
+        {
+            result->xn.bindIp = yaml::GetIpAddress(xn, "bindIp");
+            if (yaml::HasField(xn, "port"))
+                result->xn.port = static_cast<uint16_t>(yaml::GetInt32(xn, "port", 1, 65535));
+
+            std::unordered_set<uint32_t> neighborIds{};
+            if (yaml::HasField(xn, "neighbors"))
+            {
+                for (auto &neighbor : yaml::GetSequence(xn, "neighbors"))
+                {
+                    nr::gnb::XnNeighborConfig c{};
+                    auto gnbId = yaml::GetInt64(neighbor, "gnbId", 0, 0xFFFFFFFFll);
+                    c.gnbId = static_cast<uint32_t>(gnbId);
+                    c.address = yaml::GetIpAddress(neighbor, "address");
+                    if (yaml::HasField(neighbor, "port"))
+                        c.port = static_cast<uint16_t>(yaml::GetInt32(neighbor, "port", 1, 65535));
+
+                    if (c.gnbId == result->getGnbId())
+                        throw std::runtime_error("Xn neighbor gNB ID cannot be the local gNB ID");
+                    if (!neighborIds.insert(c.gnbId).second)
+                        throw std::runtime_error("Duplicate Xn neighbor gNB ID: " + std::to_string(c.gnbId));
+
+                    result->xn.neighbors.push_back(c);
+                }
+            }
+        }
     }
 
     for (auto &nssai : yaml::GetSequence(config, "slices"))

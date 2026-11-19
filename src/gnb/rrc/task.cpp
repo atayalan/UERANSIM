@@ -9,6 +9,8 @@
 #include "task.hpp"
 
 #include <gnb/nts.hpp>
+#include <gnb/ngap/task.hpp>
+#include <gnb/xnap/task.hpp>
 #include <gnb/rls/task.hpp>
 #include <lib/rrc/encode.hpp>
 
@@ -66,9 +68,39 @@ void GnbRrcTask::onLoop()
             releaseConnection(w.ueId);
             break;
         }
-        case NmGnbNgapToRrc::PAGING:
+        case NmGnbNgapToRrc::PAGING: {
             handlePaging(w.uePagingTmsi, w.taiListForPaging);
             break;
+        }
+        case NmGnbNgapToRrc::HANDOVER: {
+            if (!handleHandoverCommand(w.ueId, w.rrcContainer, true))
+            {
+                auto failed = std::make_unique<NmGnbRrcToNgap>(NmGnbRrcToNgap::HANDOVER_COMMAND_FAILED);
+                failed->ueId = w.ueId;
+                m_base->ngapTask->push(std::move(failed));
+            }
+            break;
+        }
+        }
+        break;
+    }
+    case NtsMessageType::GNB_XNAP_TO_RRC: {
+        auto &w = dynamic_cast<NmGnbXnapToRrc &>(*msg);
+        switch (w.present)
+        {
+        case NmGnbXnapToRrc::SEND_HANDOVER_COMMAND: {
+            if (!handleHandoverCommand(w.ueId, w.targetCellContainer, false))
+            {
+                auto failed = std::make_unique<NmGnbRrcToXnap>(NmGnbRrcToXnap::HANDOVER_COMMAND_FAILED);
+                failed->ueId = w.ueId;
+                m_base->xnapTask->push(std::move(failed));
+            }
+            break;
+        }
+        case NmGnbXnapToRrc::RELEASE_HANDOVER_SOURCE: {
+            releaseHandoverSource(w.ueId);
+            break;
+        }
         }
         break;
     }

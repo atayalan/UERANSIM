@@ -29,6 +29,11 @@ std::string CauseToString(const ASN_NGAP_Cause_t &cause);
 octet3 PlmnToOctet3(const Plmn &plmn);
 PduSessionType PduSessionTypeFromAsn(const ASN_NGAP_PDUSessionType_t &source);
 
+/**
+ * The gNB simulator sets up, and hands over, IPv4 and Ethernet PDU sessions only.
+ */
+bool IsSupportedPduSessionType(PduSessionType type);
+
 void PlmnFromAsn_Ref(const ASN_NGAP_PLMNIdentity_t &source, Plmn &target);
 void GuamiFromAsn_Ref(const ASN_NGAP_GUAMI_t &guami, Guami &target);
 void ToCauseAsn_Ref(NgapCause source, ASN_NGAP_Cause_t &target);

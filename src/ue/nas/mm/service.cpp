@@ -9,6 +9,7 @@
 #include "mm.hpp"
 
 #include <lib/nas/utils.hpp>
+#include <ue/nas/sm/session_status.hpp>
 #include <ue/nas/sm/sm.hpp>
 
 namespace nr::ue
@@ -233,11 +234,8 @@ void NasMm::receiveServiceAccept(const nas::ServiceAccept &msg)
     // Handle PDU session status
     if (msg.pduSessionStatus.has_value())
     {
-        auto statusInUe = m_sm->getPduSessionStatus();
-        auto statusInNw = msg.pduSessionStatus->psi;
-        for (int i = 1; i < 16; i++)
-            if (statusInUe[i] && !statusInNw[i])
-                m_sm->localReleaseSession(i);
+        for (int psi : nas_sm::SessionsToReleaseFromStatus(m_sm->getPduSessionStatus(), msg.pduSessionStatus->psi))
+            m_sm->localReleaseSession(psi);
     }
 
     // Handle PDU session reactivation result
@@ -299,11 +297,8 @@ void NasMm::receiveServiceReject(const nas::ServiceReject &msg)
     // Handle PDU session status
     if (msg.pduSessionStatus.has_value() && msg.sht != nas::ESecurityHeaderType::NOT_PROTECTED)
     {
-        auto statusInUe = m_sm->getPduSessionStatus();
-        auto statusInNw = msg.pduSessionStatus->psi;
-        for (int i = 1; i < 16; i++)
-            if (statusInUe[i] && !statusInNw[i])
-                m_sm->localReleaseSession(i);
+        for (int psi : nas_sm::SessionsToReleaseFromStatus(m_sm->getPduSessionStatus(), msg.pduSessionStatus->psi))
+            m_sm->localReleaseSession(psi);
     }
 
     // Handle EAP message

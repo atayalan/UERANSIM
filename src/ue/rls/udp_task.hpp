@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstdint>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -39,6 +40,10 @@ class RlsUdpTask : public NtsTask
     std::vector<InetAddress> m_searchSpace;
     std::unordered_map<uint64_t, CellInfo> m_cells;
     std::unordered_map<int, uint64_t> m_cellIdToSti;
+    std::mutex m_mutex;
+    // 每個 UE 各自保留初始搜尋窗口，避免多 UE 共用可變狀態。
+    bool m_firstWindow{true};
+    uint64_t m_firstWindowStart{};
     int64_t m_lastLoop;
     Vector3 m_simPos;
     int m_cellIdCounter;

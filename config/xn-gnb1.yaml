@@ -1,0 +1,34 @@
+# Example for Xn/N2 handover tests (gNB 1 of 2, run with nr-gnb -c config/xn-gnb1.yaml).
+# The PLMN, TAC, AMF address and 172.16.x.x addresses are placeholders: change them to match your core network.
+# Both gNBs need the same PLMN/TAC/slices as the UE, and each gNB's xn.neighbors entry must point at the other gNB's
+# xn.bindIp and port. List both gNBs' linkIp in the UE's gnbSearchList.
+mcc: '001'
+mnc: '01'
+
+nci: '0x000000010'
+idLength: 32
+tac: 100
+
+linkIp: 172.16.2.142
+ngapIp: 172.16.2.142
+gtpIp: 172.16.3.142
+
+amfConfigs:
+  - address: 172.16.2.136
+    port: 38412
+
+slices:
+  - sst: 1
+    sd: 1
+
+ignoreStreamIds: true
+cellAccessType: nr
+
+xn:
+  enabled: true
+  bindIp: 172.16.2.142
+  port: 38422
+  neighbors:
+    - gnbId: 2
+      address: 172.16.2.143
+      port: 38422

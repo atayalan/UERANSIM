@@ -6,6 +6,20 @@ set(CMAKE_C_STANDARD 11)
 
 include_directories(src)
 
+# Reject macOS AppleDouble sidecar files (._*) before they enter source lists.
+function(filter_appledouble variable_name)
+    if(DEFINED ${variable_name})
+        list(FILTER ${variable_name} EXCLUDE REGEX "(^|/)\\._[^/]+$")
+        set(${variable_name} "${${variable_name}}" PARENT_SCOPE)
+    endif()
+endfunction()
+
+find_path(SCTP_INCLUDE_DIR netinet/sctp.h)
+find_library(SCTP_LIBRARY NAMES sctp)
+if(NOT SCTP_INCLUDE_DIR OR NOT SCTP_LIBRARY)
+    message(FATAL_ERROR "Linux SCTP development files are missing. On Ubuntu/Debian: sudo apt-get install libsctp-dev lksctp-tools")
+endif()
+
 #################### BUILD OPTIONS ####################
 
 # Builds every target with the given sanitizers, e.g. -DUERANSIM_SANITIZE=address,undefined. UBSan findings abort
@@ -24,6 +38,7 @@ option(UERANSIM_COVERAGE "Instrument the first-party code for coverage reports" 
 
 #################### SUB DIRECTORIES ####################
 
+add_subdirectory(third_party/srsran_xnap)
 add_subdirectory(src/ext)
 add_subdirectory(src/utils)
 add_subdirectory(src/asn/asn1c)
@@ -80,10 +95,13 @@ option(BUILD_TESTS "Build the nr-tests executable" ON)
 if (BUILD_TESTS)
     # CONFIGURE_DEPENDS so that adding a test file re-runs cmake instead of silently skipping it.
     file(GLOB_RECURSE TEST_SRC_FILES CONFIGURE_DEPENDS test/*.cpp)
+    filter_appledouble(TEST_SRC_FILES)
     add_executable(nr-tests ${TEST_SRC_FILES})
     target_link_libraries(nr-tests pthread)
     target_compile_options(nr-tests PRIVATE -Wall -Wextra -pedantic)
     target_link_libraries(nr-tests common-lib)
+    target_link_libraries(nr-tests gnb)
+    target_link_libraries(nr-tests srsran-xnap)
     target_link_libraries(nr-tests ue)
     target_link_libraries(nr-tests ext)
 
@@ -93,6 +111,14 @@ if (BUILD_TESTS)
     # minute rather than holding the run up for ctest's default of 25.
     include(src/ext/doctest/doctest.cmake)
     doctest_discover_tests(nr-tests PROPERTIES TIMEOUT 60)
+
+    # The lab helper scripts under tools/ have Python tests; they are skipped on a host without Python 3.
+    find_package(Python3 COMPONENTS Interpreter QUIET)
+    if (Python3_Interpreter_FOUND)
+        add_test(NAME tools/ether-mobility-check
+                 COMMAND ${Python3_EXECUTABLE} -I -m unittest discover -s ${CMAKE_SOURCE_DIR}/test/tools -p "test_*.py")
+        set_tests_properties(tools/ether-mobility-check PROPERTIES TIMEOUT 60)
+    endif ()
 endif ()
 
 #################### COVERAGE ####################

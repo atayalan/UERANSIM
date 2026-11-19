@@ -359,7 +359,7 @@ std::optional<NgapCause> NgapTask::setupPduSessionResource(NgapUeContext *ue, Pd
         return NgapCause::Protocol_message_not_compatible_with_receiver_state;
     }
 
-    if (resource->sessionType != PduSessionType::IPv4 && resource->sessionType != PduSessionType::ETHERNET)
+    if (!ngap_utils::IsSupportedPduSessionType(resource->sessionType))
     {
         m_logger->err("PDU session resource could not setup: Only IPv4 and Ethernet are supported");
         return NgapCause::RadioNetwork_unspecified;

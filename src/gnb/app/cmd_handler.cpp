@@ -14,6 +14,7 @@
 #include <gnb/rls/task.hpp>
 #include <gnb/rrc/task.hpp>
 #include <gnb/sctp/task.hpp>
+#include <gnb/xnap/task.hpp>
 #include <utils/common.hpp>
 #include <utils/printer.hpp>
 
@@ -40,6 +41,8 @@ void GnbCmdHandler::pauseTasks()
     m_base->ngapTask->requestPause();
     m_base->rrcTask->requestPause();
     m_base->sctpTask->requestPause();
+    if (m_base->xnapTask != nullptr)
+        m_base->xnapTask->requestPause();
 }
 
 void GnbCmdHandler::unpauseTasks()
@@ -49,6 +52,8 @@ void GnbCmdHandler::unpauseTasks()
     m_base->ngapTask->requestUnpause();
     m_base->rrcTask->requestUnpause();
     m_base->sctpTask->requestUnpause();
+    if (m_base->xnapTask != nullptr)
+        m_base->xnapTask->requestUnpause();
 }
 
 bool GnbCmdHandler::isAllPaused()
@@ -62,6 +67,8 @@ bool GnbCmdHandler::isAllPaused()
     if (!m_base->rrcTask->isPauseConfirmed())
         return false;
     if (!m_base->sctpTask->isPauseConfirmed())
+        return false;
+    if (m_base->xnapTask != nullptr && !m_base->xnapTask->isPauseConfirmed())
         return false;
     return true;
 }
@@ -152,6 +159,55 @@ void GnbCmdHandler::handleCmdImpl(NmGnbCliCommand &msg)
             m_base->ngapTask->sendContextRelease(ue->ctxId, NgapCause::RadioNetwork_unspecified);
             sendResult(msg.address, "Requesting UE context release");
         }
+        break;
+    }
+    case app::GnbCliCommand::XN_STATUS: {
+        if (m_base->xnapTask == nullptr)
+            sendError(msg.address, "Xn runtime is disabled");
+        else
+            sendResult(msg.address, m_base->xnapTask->statusJson().dumpYaml());
+        break;
+    }
+    case app::GnbCliCommand::XN_NEIGHBOR_LIST: {
+        if (m_base->xnapTask == nullptr)
+            sendError(msg.address, "Xn runtime is disabled");
+        else
+            sendResult(msg.address, m_base->xnapTask->neighborsJson().dumpYaml());
+        break;
+    }
+    case app::GnbCliCommand::XN_HANDOVER: {
+        if (m_base->xnapTask == nullptr)
+        {
+            sendError(msg.address, "Xn runtime is disabled");
+            break;
+        }
+        std::string error{};
+        if (!m_base->xnapTask->requestHandover(msg.cmd->ueId, msg.cmd->gnbId, error))
+            sendError(msg.address, error);
+        else
+            sendResult(msg.address, "Xn handover preparation started");
+        break;
+    }
+    case app::GnbCliCommand::N2_HANDOVER: {
+        if (m_base->ngapTask->m_ueCtx.count(msg.cmd->ueId) == 0)
+        {
+            sendError(msg.address, "UE not found with given ID");
+            break;
+        }
+        if (msg.cmd->gnbId == m_base->config->getGnbId())
+        {
+            sendError(msg.address, "Target gNB must differ from the source gNB");
+            break;
+        }
+        std::string error{};
+        if (!m_base->ngapTask->sendHandoverRequired(msg.cmd->ueId, static_cast<int>(msg.cmd->gnbId), error))
+        {
+            sendError(msg.address, error);
+            break;
+        }
+        std::string res = "Requesting N2 handover for UE[" + std::to_string(msg.cmd->ueId) +
+                          "] to gNB[" + std::to_string(msg.cmd->gnbId) + "]";
+        sendResult(msg.address, res);
         break;
     }
     }

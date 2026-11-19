@@ -29,6 +29,7 @@ Json ToJson(const GnbConfig &v)
         {"nssai", ToJson(v.nssai)},
         {"ngap-ip", v.ngapIp},
         {"gtp-ip", v.gtpIp},
+        {"xn", ToJson(v.xn)},
         {"paging-drx", ToJson(v.pagingDrx)},
         {"ignore-sctp-id", v.ignoreStreamIds},
     });
@@ -86,6 +87,61 @@ Json ToJson(const EPagingDrx &v)
 Json ToJson(const SctpAssociation &v)
 {
     return Json::Obj({{"id", v.associationId}, {"rx-num", v.inStreams}, {"tx-num", v.outStreams}});
+}
+
+Json ToJson(const XnNeighborConfig &v)
+{
+    return Json::Obj({
+        {"gnb-id", static_cast<int64_t>(v.gnbId)},
+        {"address", v.address},
+        {"port", static_cast<int>(v.port)},
+    });
+}
+
+Json ToJson(const XnConfig &v)
+{
+    Json neighbors = Json::Arr({});
+    for (const auto &neighbor : v.neighbors)
+        neighbors.push(ToJson(neighbor));
+
+    return Json::Obj({
+        {"enabled", v.enabled},
+        {"bind-ip", v.bindIp},
+        {"port", static_cast<int>(v.port)},
+        {"neighbors", neighbors},
+    });
+}
+
+Json ToJson(const EXnNeighborState &v)
+{
+    switch (v)
+    {
+    case EXnNeighborState::DISCONNECTED:
+        return "DISCONNECTED";
+    case EXnNeighborState::SCTP_CONNECTING:
+        return "SCTP_CONNECTING";
+    case EXnNeighborState::XN_SETUP_PENDING:
+        return "XN_SETUP_PENDING";
+    case EXnNeighborState::CONNECTED:
+        return "CONNECTED";
+    case EXnNeighborState::FAILED:
+        return "FAILED";
+    default:
+        return "?";
+    }
+}
+
+Json ToJson(const XnNeighborContext &v)
+{
+    return Json::Obj({
+        {"gnb-id", static_cast<int64_t>(v.gnbId)},
+        {"ctx-id", v.ctxId},
+        {"sctp-client-id", v.sctpClientId},
+        {"address", v.address},
+        {"port", static_cast<int>(v.port)},
+        {"state", ToJson(v.state).str()},
+        {"association", ToJson(v.association)},
+    });
 }
 
 Json ToJson(const ServedGuami &v)

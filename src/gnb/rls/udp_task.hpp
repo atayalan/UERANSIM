@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstdint>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -34,12 +35,16 @@ class RlsUdpTask : public NtsTask
     std::unique_ptr<Logger> m_logger;
     udp::UdpServer *m_server;
     NtsTask *m_ctlTask;
+    uint32_t m_gnbId;
     uint64_t m_sti;
     Vector3 m_phyLocation;
     int64_t m_lastLoop;
     std::unordered_map<uint64_t, int> m_stiToUe;
     std::unordered_map<int, UeInfo> m_ueMap;
     int m_newIdCounter;
+    // Guards m_stiToUe and m_ueMap against the lookups other tasks make through stiOf and ueIdOf: this task takes it when
+    // it adds or removes a UE, other tasks take it when they read.
+    mutable std::mutex m_idMutex;
 
   public:
     explicit RlsUdpTask(TaskBase *base, uint64_t sti, Vector3 phyLocation);
@@ -58,6 +63,12 @@ class RlsUdpTask : public NtsTask
   public:
     void initialize(NtsTask *ctlTask);
     void send(int ueId, const rls::RlsMessage &msg);
+    int reserveNewUeId();
+
+    // The sti is what stays the same for a UE across gNBs; the UE id is allocated per gNB. Both return 0 when unknown.
+    // Safe to call from other tasks.
+    [[nodiscard]] uint64_t stiOf(int ueId) const;
+    [[nodiscard]] int ueIdOf(uint64_t sti) const;
 };
 
 } // namespace nr::gnb

@@ -168,6 +168,7 @@ struct NmGnbNgapToRrc : NtsMessage
         NAS_DELIVERY,
         AN_RELEASE,
         PAGING,
+        HANDOVER,
     } present;
 
     // NAS_DELIVERY
@@ -181,6 +182,9 @@ struct NmGnbNgapToRrc : NtsMessage
     asn::Unique<ASN_NGAP_FiveG_S_TMSI> uePagingTmsi{};
     asn::Unique<ASN_NGAP_TAIListForPaging> taiListForPaging{};
 
+    // HANDOVER
+    OctetString rrcContainer{};
+
     explicit NmGnbNgapToRrc(PR present) : NtsMessage(NtsMessageType::GNB_NGAP_TO_RRC), present(present)
     {
     }
@@ -192,12 +196,15 @@ struct NmGnbRrcToNgap : NtsMessage
     {
         INITIAL_NAS_DELIVERY,
         UPLINK_NAS_DELIVERY,
-        RADIO_LINK_FAILURE
+        HANDOVER_CONFIRM,
+        RADIO_LINK_FAILURE,
+        HANDOVER_COMMAND_FAILED,
     } present;
 
     // INITIAL_NAS_DELIVERY
     // UPLINK_NAS_DELIVERY
     // RADIO_LINK_FAILURE
+    // HANDOVER_COMMAND_FAILED
     int ueId{};
 
     // INITIAL_NAS_DELIVERY
@@ -213,6 +220,149 @@ struct NmGnbRrcToNgap : NtsMessage
     }
 };
 
+struct NmGnbXnapToRrc : NtsMessage
+{
+    enum PR
+    {
+        SEND_HANDOVER_COMMAND,
+        RELEASE_HANDOVER_SOURCE,
+    } present;
+
+    // SEND_HANDOVER_COMMAND
+    // RELEASE_HANDOVER_SOURCE
+    int ueId{};
+
+    // SEND_HANDOVER_COMMAND
+    OctetString targetCellContainer{};
+
+    explicit NmGnbXnapToRrc(PR present) : NtsMessage(NtsMessageType::GNB_XNAP_TO_RRC), present(present)
+    {
+    }
+};
+
+struct NmGnbRrcToXnap : NtsMessage
+{
+    enum PR
+    {
+        HANDOVER_CONFIRM,
+        HANDOVER_COMMAND_FAILED,
+    } present;
+
+    // HANDOVER_CONFIRM
+    // HANDOVER_COMMAND_FAILED
+    int ueId{};
+
+    explicit NmGnbRrcToXnap(PR present) : NtsMessage(NtsMessageType::GNB_RRC_TO_XNAP), present(present)
+    {
+    }
+};
+
+struct NmGnbXnapToNgap : NtsMessage
+{
+    enum PR
+    {
+        PREPARE_HANDOVER_TARGET,
+        PATH_SWITCH_REQUEST,
+        // Releases the NGAP/GTP context of a UE locally (no AMF signalling): the source after the target switched the path,
+        // or a target whose handover was dropped before the UE attached.
+        RELEASE_HANDOVER_SOURCE,
+        // As RELEASE_HANDOVER_SOURCE for a target whose UE is attached but whose Path Switch was rejected by the AMF: the UE
+        // connection is released as well (RRC Release).
+        RELEASE_FAILED_TARGET,
+        // Asks the AMF to release the UE (UE Context Release Request); the AMF's release command then removes the
+        // contexts. Used when a Path Switch Request was never answered. Falls back to RELEASE_FAILED_TARGET when the
+        // request can not be sent.
+        REQUEST_UE_RELEASE,
+    } present;
+
+    // PREPARE_HANDOVER_TARGET
+    // PATH_SWITCH_REQUEST
+    // RELEASE_HANDOVER_SOURCE
+    // RELEASE_FAILED_TARGET
+    // REQUEST_UE_RELEASE
+    int ueId{};
+
+    // PREPARE_HANDOVER_TARGET
+    std::optional<int64_t> amfUeNgapId{};
+    std::unique_ptr<XnHandoverNgapSnapshot> handoverSnapshot{};
+
+    explicit NmGnbXnapToNgap(PR present) : NtsMessage(NtsMessageType::GNB_XNAP_TO_NGAP), present(present)
+    {
+    }
+};
+
+struct NmGnbNgapToXnap : NtsMessage
+{
+    enum PR
+    {
+        TARGET_PREPARE_ACK,
+        TARGET_PREPARE_FAILURE,
+        PATH_SWITCH_ACK,
+        PATH_SWITCH_FAILURE,
+        // The AMF accepted the Path Switch but its acknowledgement is unusable; this gNB asked the AMF to release the UE,
+        // so the context stays until the AMF's release command arrives.
+        PATH_SWITCH_UNUSABLE,
+    } present;
+
+    // TARGET_PREPARE_ACK
+    // TARGET_PREPARE_FAILURE
+    // PATH_SWITCH_ACK
+    // PATH_SWITCH_FAILURE
+    // PATH_SWITCH_UNUSABLE
+    int ueId{};
+
+    // TARGET_PREPARE_FAILURE
+    // PATH_SWITCH_ACK: optional detail (for example sessions released by the AMF)
+    // PATH_SWITCH_FAILURE: useful NGAP/local failure cause text
+    std::string cause{};
+
+    explicit NmGnbNgapToXnap(PR present) : NtsMessage(NtsMessageType::GNB_NGAP_TO_XNAP), present(present)
+    {
+    }
+};
+
+struct NmGnbXnapToGtp : NtsMessage
+{
+    enum PR
+    {
+        ALLOCATE_TARGET_FORWARDING,
+        ACTIVATE_SOURCE_FORWARDING,
+        CANCEL_FORWARDING,
+    } present;
+
+    int ueId{};
+
+    // ACTIVATE_SOURCE_FORWARDING
+    std::vector<XnForwardingEndpoint> endpoints{};
+
+    explicit NmGnbXnapToGtp(PR present) : NtsMessage(NtsMessageType::GNB_XNAP_TO_GTP), present(present)
+    {
+    }
+};
+
+struct NmGnbGtpToXnap : NtsMessage
+{
+    enum PR
+    {
+        TARGET_SESSIONS_READY,
+        TARGET_FORWARDING_ALLOCATED,
+        SOURCE_FORWARDING_READY,
+        FORWARDING_FAILURE,
+    } present;
+
+    int ueId{};
+
+    // TARGET_FORWARDING_ALLOCATED
+    std::vector<XnForwardingEndpoint> endpoints{};
+
+    // FORWARDING_FAILURE
+    std::string cause{};
+
+    explicit NmGnbGtpToXnap(PR present) : NtsMessage(NtsMessageType::GNB_GTP_TO_XNAP), present(present)
+    {
+    }
+};
+
 struct NmGnbNgapToGtp : NtsMessage
 {
     enum PR
@@ -221,6 +371,7 @@ struct NmGnbNgapToGtp : NtsMessage
         UE_CONTEXT_RELEASE,
         SESSION_CREATE,
         SESSION_RELEASE,
+        XN_TARGET_PREPARE_COMPLETE,
     } present;
 
     // UE_CONTEXT_UPDATE
@@ -246,6 +397,9 @@ struct NmGnbSctp : NtsMessage
     enum PR
     {
         CONNECTION_REQUEST,
+        CONNECTION_FAILURE,
+        LISTEN_REQUEST,
+        CONNECTION_ACCEPTED,
         CONNECTION_CLOSE,
         ASSOCIATION_SETUP,
         ASSOCIATION_SHUTDOWN,
@@ -255,6 +409,9 @@ struct NmGnbSctp : NtsMessage
     } present;
 
     // CONNECTION_REQUEST
+    // CONNECTION_FAILURE
+    // LISTEN_REQUEST
+    // CONNECTION_ACCEPTED
     // CONNECTION_CLOSE
     // ASSOCIATION_SETUP
     // ASSOCIATION_SHUTDOWN
@@ -263,6 +420,12 @@ struct NmGnbSctp : NtsMessage
     // UNHANDLED_NOTIFICATION
     int clientId{};
 
+    // CONNECTION_FAILURE
+    std::string error{};
+
+    // LISTEN_REQUEST
+    int listenerId{};
+
     // CONNECTION_REQUEST
     std::string localAddress{};
     uint16_t localPort{};
@@ -270,6 +433,9 @@ struct NmGnbSctp : NtsMessage
     uint16_t remotePort{};
     sctp::PayloadProtocolId ppid{};
     NtsTask *associatedTask{};
+
+    // CONNECTION_ACCEPTED (internal SctpTask hand-off)
+    std::unique_ptr<sctp::SctpClient> acceptedClient{};
 
     // ASSOCIATION_SETUP
     int associationId{};

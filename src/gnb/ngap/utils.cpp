@@ -204,6 +204,11 @@ PduSessionType PduSessionTypeFromAsn(const ASN_NGAP_PDUSessionType_t &source)
     }
 }
 
+bool IsSupportedPduSessionType(PduSessionType type)
+{
+    return type == PduSessionType::IPv4 || type == PduSessionType::ETHERNET;
+}
+
 void ToPlmnAsn_Ref(const Plmn &source, ASN_NGAP_PLMNIdentity_t &target)
 {
     octet3 val = PlmnToOctet3(source);

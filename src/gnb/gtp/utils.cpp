@@ -13,6 +13,23 @@
 namespace nr::gnb
 {
 
+bool IsUplinkPduAllowed(PduSessionType sessionType, const OctetString &pdu)
+{
+    if (pdu.length() < 1)
+        return false;
+
+    switch (sessionType)
+    {
+    case PduSessionType::IPv4:
+        return (pdu.data()[0] >> 4 & 0xF) == 4;
+    case PduSessionType::ETHERNET:
+        return true;
+    default:
+        // The gNB sets up IPv4 and Ethernet sessions only.
+        return false;
+    }
+}
+
 PduSessionTree::PduSessionTree() : mapByDownTeid{}, mapByUeId{}
 {
 }
@@ -20,6 +37,7 @@ PduSessionTree::PduSessionTree() : mapByDownTeid{}, mapByUeId{}
 void PduSessionTree::insert(uint64_t session, uint32_t downTeid)
 {
     mapByDownTeid[downTeid] = session;
+    mapByUeId[GetUeId(session)][GetPsi(session)] = session;
 }
 
 uint64_t PduSessionTree::findByDownTeid(uint32_t teid)

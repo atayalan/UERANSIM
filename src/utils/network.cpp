@@ -7,6 +7,8 @@
 //
 
 #include "network.hpp"
+
+#include <cerrno>
 #include "libc_error.hpp"
 
 #include <cstring>
