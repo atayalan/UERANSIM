@@ -121,7 +121,7 @@ void CloseSocket(int sd)
     close(sd);
 }
 
-void Accept(int sd)
+int Accept(int sd)
 {
     sockaddr saddr{};
     socklen_t saddr_size{};
@@ -129,6 +129,41 @@ void Accept(int sd)
     int clientSd = accept(sd, &saddr, &saddr_size);
     if (clientSd < 0)
         ThrowError("SCTP accept failure: ", errno);
+    try
+    {
+        SetEventOptions(clientSd);
+    }
+    catch (...)
+    {
+        close(clientSd);
+        throw;
+    }
+    return clientSd;
+}
+
+std::string GetPeerAddress(int sd)
+{
+    sockaddr_storage addr{};
+    socklen_t len = sizeof(addr);
+    if (getpeername(sd, reinterpret_cast<sockaddr *>(&addr), &len) != 0)
+        return {};
+
+    char text[INET6_ADDRSTRLEN] = {};
+    if (addr.ss_family == AF_INET)
+    {
+        const auto *in = reinterpret_cast<const sockaddr_in *>(&addr);
+        if (inet_ntop(AF_INET, &in->sin_addr, text, sizeof(text)) == nullptr)
+            return {};
+    }
+    else if (addr.ss_family == AF_INET6)
+    {
+        const auto *in6 = reinterpret_cast<const sockaddr_in6 *>(&addr);
+        if (inet_ntop(AF_INET6, &in6->sin6_addr, text, sizeof(text)) == nullptr)
+            return {};
+    }
+    else
+        return {};
+    return text;
 }
 
 void Connect(int sd, const std::string &address, uint16_t port)

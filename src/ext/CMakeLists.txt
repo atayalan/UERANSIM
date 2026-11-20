@@ -2,6 +2,10 @@ file(GLOB_RECURSE H_FILES *.h)
 file(GLOB_RECURSE C_FILES *.c)
 file(GLOB_RECURSE HDR_FILES *.hpp)
 file(GLOB_RECURSE SRC_FILES *.cpp)
+filter_appledouble(H_FILES)
+filter_appledouble(C_FILES)
+filter_appledouble(HDR_FILES)
+filter_appledouble(SRC_FILES)
 
 add_library(ext ${H_FILES} ${C_FILES} ${HDR_FILES} ${SRC_FILES})
 

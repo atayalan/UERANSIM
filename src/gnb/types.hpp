@@ -30,6 +30,7 @@ class NgapTask;
 class GnbRrcTask;
 class GnbRlsTask;
 class SctpTask;
+class XnapTask;
 
 enum class EAmfState
 {
@@ -124,6 +125,69 @@ struct AggregateMaximumBitRate
     uint64_t ulAmbr{};
 };
 
+struct NgapUeSecurityCapabilities
+{
+    bool valid{};
+    uint16_t nrEncryptionAlgorithms{};
+    uint16_t nrIntegrityProtectionAlgorithms{};
+    uint16_t eutraEncryptionAlgorithms{};
+    uint16_t eutraIntegrityProtectionAlgorithms{};
+};
+
+struct GtpTunnel
+{
+    uint32_t teid{};
+    OctetString address{};
+};
+
+struct XnForwardingEndpoint
+{
+    int psi{};
+    // Type of the PDU session the endpoint belongs to, as sent in the XnAP session list.
+    PduSessionType sessionType{PduSessionType::IPv4};
+    GtpTunnel tunnel{};
+    std::vector<int> qosFlowIds{};
+
+    XnForwardingEndpoint() = default;
+    XnForwardingEndpoint(const XnForwardingEndpoint &other)
+        : psi(other.psi), sessionType(other.sessionType), qosFlowIds(other.qosFlowIds)
+    {
+        tunnel.teid = other.tunnel.teid;
+        tunnel.address = other.tunnel.address.copy();
+    }
+    XnForwardingEndpoint &operator=(const XnForwardingEndpoint &other)
+    {
+        if (this != &other)
+        {
+            psi = other.psi;
+            sessionType = other.sessionType;
+            tunnel.teid = other.tunnel.teid;
+            tunnel.address = other.tunnel.address.copy();
+            qosFlowIds = other.qosFlowIds;
+        }
+        return *this;
+    }
+    XnForwardingEndpoint(XnForwardingEndpoint &&) noexcept = default;
+    XnForwardingEndpoint &operator=(XnForwardingEndpoint &&) noexcept = default;
+};
+
+struct XnHandoverPduSessionSnapshot
+{
+    int psi{};
+    PduSessionType sessionType{PduSessionType::UNSTRUCTURED};
+    AggregateMaximumBitRate sessionAmbr{};
+    GtpTunnel upTunnel{};
+    std::vector<int> qosFlowIds{};
+};
+
+struct XnHandoverNgapSnapshot
+{
+    uint64_t sti{}; // RLS identity of the UE; ids differ per gNB, the sti does not. 0 when unknown.
+    AggregateMaximumBitRate ueAmbr{};
+    NgapUeSecurityCapabilities securityCapabilities{};
+    std::vector<XnHandoverPduSessionSnapshot> pduSessions{};
+};
+
 struct NgapUeContext
 {
     const int ctxId{};
@@ -134,6 +198,7 @@ struct NgapUeContext
     int uplinkStream{};
     int downlinkStream{};
     AggregateMaximumBitRate ueAmbr{};
+    NgapUeSecurityCapabilities securityCapabilities{};
     std::set<int> pduSessions{};
 
     explicit NgapUeContext(int ctxId) : ctxId(ctxId)
@@ -244,12 +309,6 @@ enum class NgapCause
     Misc_unknown_PLMN,
 };
 
-struct GtpTunnel
-{
-    uint32_t teid{};
-    OctetString address{};
-};
-
 struct PduSessionResource
 {
     const int ueId;
@@ -276,6 +335,7 @@ struct GtpUeContext
 {
     const int ueId;
     AggregateMaximumBitRate ueAmbr{};
+    std::map<int, std::unique_ptr<PduSessionResource>> pduSessions;
 
     explicit GtpUeContext(const int ueId) : ueId(ueId)
     {
@@ -298,6 +358,42 @@ struct GnbAmfConfig
 {
     std::string address{};
     uint16_t port{};
+};
+
+struct XnNeighborConfig
+{
+    uint32_t gnbId{};
+    std::string address{};
+    uint16_t port{38422};
+};
+
+struct XnConfig
+{
+    bool enabled{};
+    std::string bindIp{};
+    uint16_t port{38422};
+    std::vector<XnNeighborConfig> neighbors{};
+};
+
+enum class EXnNeighborState
+{
+    DISCONNECTED = 0,
+    SCTP_CONNECTING,
+    XN_SETUP_PENDING,
+    CONNECTED,
+    FAILED,
+};
+
+struct XnNeighborContext
+{
+    uint32_t gnbId{};
+    int ctxId{};
+    int sctpClientId{};
+    SctpAssociation association{};
+    EXnNeighborState state{EXnNeighborState::DISCONNECTED};
+    int nextStream{};
+    std::string address{};
+    uint16_t port{38422};
 };
 
 // Cell access type, used to populate the NR-NTN TAI Information extension on
@@ -331,6 +427,7 @@ struct GnbConfig
     std::string gtpIp{};
     std::optional<std::string> gtpAdvertiseIp{};
     bool ignoreStreamIds{};
+    XnConfig xn{};
     ECellAccessType cellAccessType{ECellAccessType::TerrestrialNr};
 
     /* Assigned by program */
@@ -362,6 +459,7 @@ struct TaskBase
     GnbRrcTask *rrcTask{};
     SctpTask *sctpTask{};
     GnbRlsTask *rlsTask{};
+    XnapTask *xnapTask{};
 };
 
 Json ToJson(const GnbStatusInfo &v);
@@ -370,6 +468,10 @@ Json ToJson(const NgapAmfContext &v);
 Json ToJson(const EAmfState &v);
 Json ToJson(const EPagingDrx &v);
 Json ToJson(const SctpAssociation &v);
+Json ToJson(const XnConfig &v);
+Json ToJson(const XnNeighborConfig &v);
+Json ToJson(const XnNeighborContext &v);
+Json ToJson(const EXnNeighborState &v);
 Json ToJson(const ServedGuami &v);
 Json ToJson(const Guami &v);
 

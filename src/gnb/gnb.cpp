@@ -13,6 +13,7 @@
 #include "rls/task.hpp"
 #include "rrc/task.hpp"
 #include "sctp/task.hpp"
+#include "xnap/task.hpp"
 
 #include <lib/app/cli_base.hpp>
 
@@ -33,6 +34,8 @@ GNodeB::GNodeB(GnbConfig *config, app::INodeListener *nodeListener, NtsTask *cli
     base->rrcTask = new GnbRrcTask(base);
     base->gtpTask = new GtpTask(base);
     base->rlsTask = new GnbRlsTask(base);
+    if (config->xn.enabled)
+        base->xnapTask = new XnapTask(base);
 
     taskBase = base;
 }
@@ -40,6 +43,8 @@ GNodeB::GNodeB(GnbConfig *config, app::INodeListener *nodeListener, NtsTask *cli
 GNodeB::~GNodeB()
 {
     taskBase->appTask->quit();
+    if (taskBase->xnapTask)
+        taskBase->xnapTask->quit();
     taskBase->sctpTask->quit();
     taskBase->ngapTask->quit();
     taskBase->rrcTask->quit();
@@ -47,6 +52,7 @@ GNodeB::~GNodeB()
     taskBase->rlsTask->quit();
 
     delete taskBase->appTask;
+    delete taskBase->xnapTask;
     delete taskBase->sctpTask;
     delete taskBase->ngapTask;
     delete taskBase->rrcTask;
@@ -62,6 +68,8 @@ void GNodeB::start()
 {
     taskBase->appTask->start();
     taskBase->sctpTask->start();
+    if (taskBase->xnapTask)
+        taskBase->xnapTask->start();
     taskBase->ngapTask->start();
     taskBase->rrcTask->start();
     taskBase->rlsTask->start();

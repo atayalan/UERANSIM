@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include "client.hpp"
+
+#include <memory>
 #include <string>
 #include <cstdint>
 
@@ -24,6 +27,7 @@ class SctpServer
     ~SctpServer();
 
     void start();
+    std::unique_ptr<SctpClient> accept(PayloadProtocolId ppid);
 
     // TODO: Other functionalities
 };

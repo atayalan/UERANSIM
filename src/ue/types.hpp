@@ -134,6 +134,7 @@ struct UeConfig
     /* Assigned by program */
     bool configureRouting{};
     bool prefixLogger{};
+    bool testMobilityUpdate{}; // 由 --mobi_update 啟用一次性註冊更新測試，預設關閉。
 
     [[nodiscard]] std::string getNodeName() const
     {

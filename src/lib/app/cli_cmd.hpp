@@ -30,13 +30,23 @@ struct GnbCliCommand
         UE_LIST,
         UE_COUNT,
         UE_RELEASE_REQ,
+        XN_STATUS,
+        XN_NEIGHBOR_LIST,
+        XN_HANDOVER,
+        N2_HANDOVER,
     } present;
 
     // AMF_INFO
     int amfId{};
 
     // UE_RELEASE_REQ
+    // XN_HANDOVER
+    // N2_HANDOVER
     int ueId{};
+
+    // XN_HANDOVER
+    // N2_HANDOVER
+    uint32_t gnbId{};
 
     explicit GnbCliCommand(PR present) : present(present)
     {
@@ -55,6 +65,7 @@ struct UeCliCommand
         PS_RELEASE_ALL,
         PS_LIST,
         DE_REGISTER,
+        MOBILITY_UPDATE,
         RLS_STATE,
         COVERAGE,
     } present;

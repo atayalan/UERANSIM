@@ -31,7 +31,7 @@ static void NameControl(const std::string &name)
             continue;
         if (c >= 'A' && c <= 'Z')
             continue;
-        if (c == '-')
+        if (c == '-' || c == '_')
             continue;
         throw std::runtime_error("Invalid OptionItem: name contains illegal character");
     }

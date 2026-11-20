@@ -20,9 +20,8 @@
 #include <asn/ngap/ASN_NGAP_ProtocolIE-Field.h>
 #include <asn/ngap/ASN_NGAP_RerouteNASRequest.h>
 #include <asn/ngap/ASN_NGAP_UplinkNASTransport.h>
-#include <ue/nas/enc.hpp>
-#include "encode.hpp"
 #include <stdexcept>
+#include <ue/nas/enc.hpp>
 
 namespace nr::gnb
 {

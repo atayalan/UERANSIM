@@ -39,4 +39,20 @@ RrcUeContext *GnbRrcTask::findUe(int id)
     return ue;
 }
 
+void GnbRrcTask::releaseHandoverSource(int ueId)
+{
+    auto it = m_ueCtx.find(ueId);
+    if (it == m_ueCtx.end())
+    {
+        m_logger->debug("Source RRC UE context already absent for UE[%d]", ueId);
+        return;
+    }
+
+    // The UE has already moved to the target cell. Remove only local state: do not
+    // transmit RRC Release and do not route this cleanup through the RLF path.
+    delete it->second;
+    m_ueCtx.erase(it);
+    m_logger->debug("Silently released source RRC context after Xn handover for UE[%d]", ueId);
+}
+
 } // namespace nr::gnb

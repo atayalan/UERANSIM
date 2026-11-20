@@ -9,6 +9,11 @@
 #include "task.hpp"
 
 #include <gnb/ngap/task.hpp>
+#include <gnb/ngap/encode.hpp>
+#include <asn/ngap/ASN_NGAP_TargetNGRANNode-ToSourceNGRANNode-TransparentContainer.h>
+#include <asn/rrc/ASN_RRC_HandoverCommand.h>
+#include <asn/rrc/ASN_RRC_HandoverCommand-IEs.h>
+#include <gnb/xnap/task.hpp>
 #include <lib/rrc/encode.hpp>
 
 #include <asn/ngap/ASN_NGAP_FiveG-S-TMSI.h>
@@ -23,6 +28,8 @@
 #include <asn/rrc/ASN_RRC_Paging.h>
 #include <asn/rrc/ASN_RRC_PagingRecord.h>
 #include <asn/rrc/ASN_RRC_PagingRecordList.h>
+#include <asn/rrc/ASN_RRC_RRCReconfiguration-IEs.h>
+#include <asn/rrc/ASN_RRC_RRCReconfiguration.h>
 #include <asn/rrc/ASN_RRC_RRCRelease-IEs.h>
 #include <asn/rrc/ASN_RRC_RRCRelease.h>
 #include <asn/rrc/ASN_RRC_RRCSetup-IEs.h>
@@ -132,6 +139,96 @@ void GnbRrcTask::handlePaging(const asn::Unique<ASN_NGAP_FiveG_S_TMSI> &tmsi,
 
     sendRrcMessage(pdu);
     asn::Free(asn_DEF_ASN_RRC_PCCH_Message, pdu);
+}
+
+bool GnbRrcTask::handleHandoverCommand(int ueId, const OctetString &containerOctets, bool isN2)
+{
+    ASN_RRC_RRCReconfiguration *reconfiguration = nullptr;
+    if (isN2)
+    {
+        // NGAP 外層使用 APER，內層 RRC 使用 UPER；逐層解碼後轉送。
+        auto *container = ngap_encode::Decode<ASN_NGAP_TargetNGRANNode_ToSourceNGRANNode_TransparentContainer>(
+            asn_DEF_ASN_NGAP_TargetNGRANNode_ToSourceNGRANNode_TransparentContainer,
+            containerOctets.data(), containerOctets.length());
+        if (container == nullptr)
+        {
+            m_logger->err("Invalid target-to-source transparent container");
+            return false;
+        }
+        auto *command = rrc::encode::Decode<ASN_RRC_HandoverCommand>(
+            asn_DEF_ASN_RRC_HandoverCommand, container->rRCContainer);
+        asn::Free(asn_DEF_ASN_NGAP_TargetNGRANNode_ToSourceNGRANNode_TransparentContainer, container);
+        if (command == nullptr)
+        {
+            m_logger->err("Invalid RRC HandoverCommand");
+            return false;
+        }
+        const auto &extensions = command->criticalExtensions;
+        if (extensions.present != ASN_RRC_HandoverCommand__criticalExtensions_PR_c1 ||
+            extensions.choice.c1 == nullptr ||
+            extensions.choice.c1->present !=
+                ASN_RRC_HandoverCommand__criticalExtensions__c1_PR_handoverCommand ||
+            extensions.choice.c1->choice.handoverCommand == nullptr)
+        {
+            asn::Free(asn_DEF_ASN_RRC_HandoverCommand, command);
+            m_logger->err("Missing RRC handoverCommand");
+            return false;
+        }
+        reconfiguration = rrc::encode::Decode<ASN_RRC_RRCReconfiguration>(
+            asn_DEF_ASN_RRC_RRCReconfiguration,
+            extensions.choice.c1->choice.handoverCommand->handoverCommandMessage);
+        asn::Free(asn_DEF_ASN_RRC_HandoverCommand, command);
+        if (reconfiguration == nullptr)
+        {
+            m_logger->err("Invalid RRCReconfiguration in HandoverCommand");
+            return false;
+        }
+
+    }
+    else
+    {
+        // Xn task 傳入四個 byte 的目標 ID，不能交給 NGAP container decoder。
+        if (containerOctets.length() != 4)
+        {
+            m_logger->err("Invalid Xn handover target identifier");
+            return false;
+        }
+        reconfiguration = asn::New<ASN_RRC_RRCReconfiguration>();
+        reconfiguration->rrc_TransactionIdentifier = getNextTid();
+        reconfiguration->criticalExtensions.present =
+            ASN_RRC_RRCReconfiguration__criticalExtensions_PR_rrcReconfiguration;
+        auto *ies = asn::New<ASN_RRC_RRCReconfiguration_IEs>();
+        reconfiguration->criticalExtensions.choice.rrcReconfiguration = ies;
+        ies->lateNonCriticalExtension = asn::New<OCTET_STRING_t>();
+        asn::SetOctetString(*ies->lateNonCriticalExtension, containerOctets);
+    }
+
+    m_logger->debug("Sending RRC Handover Command for UE[%d]", ueId);
+    auto *pdu = asn::New<ASN_RRC_DL_DCCH_Message>();
+    pdu->message.present = ASN_RRC_DL_DCCH_MessageType_PR_c1;
+    pdu->message.choice.c1 = asn::NewFor(pdu->message.choice.c1);
+    pdu->message.choice.c1->present = ASN_RRC_DL_DCCH_MessageType__c1_PR_rrcReconfiguration;
+    pdu->message.choice.c1->choice.rrcReconfiguration = reconfiguration;
+    sendRrcMessage(ueId, pdu);
+    asn::Free(asn_DEF_ASN_RRC_DL_DCCH_Message, pdu);
+    return true;
+}
+
+void GnbRrcTask::receiveRrcHandoverConfirm(int ueId, const ASN_RRC_RRCReconfigurationComplete &msg)
+{
+    (void)msg;
+    m_logger->debug("RRC Handover Confirm received from UE[%d]", ueId);
+
+    auto ngap = std::make_unique<NmGnbRrcToNgap>(NmGnbRrcToNgap::HANDOVER_CONFIRM);
+    ngap->ueId = ueId;
+    m_base->ngapTask->push(std::move(ngap));
+
+    if (m_base->xnapTask != nullptr)
+    {
+        auto xnap = std::make_unique<NmGnbRrcToXnap>(NmGnbRrcToXnap::HANDOVER_CONFIRM);
+        xnap->ueId = ueId;
+        m_base->xnapTask->push(std::move(xnap));
+    }
 }
 
 } // namespace nr::gnb

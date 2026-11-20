@@ -33,5 +33,10 @@ sctp::SctpServer::~SctpServer()
 
 void sctp::SctpServer::start()
 {
-    Accept(sd);
+    CloseSocket(Accept(sd));
+}
+
+std::unique_ptr<sctp::SctpClient> sctp::SctpServer::accept(PayloadProtocolId ppid)
+{
+    return std::make_unique<SctpClient>(ppid, Accept(sd));
 }

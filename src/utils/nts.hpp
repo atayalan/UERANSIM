@@ -43,6 +43,12 @@ enum class NtsMessageType
     GNB_RLS_TO_RLS,
     GNB_NGAP_TO_RRC,
     GNB_RRC_TO_NGAP,
+    GNB_XNAP_TO_RRC,
+    GNB_RRC_TO_XNAP,
+    GNB_XNAP_TO_NGAP,
+    GNB_NGAP_TO_XNAP,
+    GNB_XNAP_TO_GTP,
+    GNB_GTP_TO_XNAP,
     GNB_NGAP_TO_GTP,
     GNB_SCTP,
 

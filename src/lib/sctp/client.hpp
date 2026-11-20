@@ -24,6 +24,7 @@ class SctpClient
 
   public:
     explicit SctpClient(PayloadProtocolId ppid, const std::string &address);
+    SctpClient(PayloadProtocolId ppid, int acceptedSocket);
     ~SctpClient();
 
     void bind(const std::string &address, uint16_t port);
@@ -34,6 +35,9 @@ class SctpClient
     void send(uint16_t stream, const std::vector<uint8_t> &data);
 
     void receive(ISctpHandler *handler);
+
+    // Textual IP address of the remote end, empty if unknown.
+    [[nodiscard]] std::string peerAddress() const;
 };
 
 } // namespace sctp

@@ -47,7 +47,6 @@ void NgapTask::onLoop()
     auto msg = take();
     if (!msg)
         return;
-
     switch (msg->msgType)
     {
     case NtsMessageType::GNB_RRC_TO_NGAP: {
@@ -62,10 +61,51 @@ void NgapTask::onLoop()
             handleUplinkNasTransport(w.ueId, w.pdu);
             break;
         }
+
+        case NmGnbRrcToNgap::HANDOVER_COMMAND_FAILED: {
+            // Only a handover this gNB started (Handover Required sent) can be cancelled.
+            if (m_n2HandoverSources.erase(w.ueId) == 0)
+            {
+                m_logger->warn("Ignoring handover command failure for UE[%d]: no N2 handover is outstanding", w.ueId);
+                break;
+            }
+            sendHandoverCancel(w.ueId);
+            break;
+        }
+        case NmGnbRrcToNgap::HANDOVER_CONFIRM: {
+            handleHandoverConfirm(w.ueId);
+            break;
+        }
+
         case NmGnbRrcToNgap::RADIO_LINK_FAILURE: {
             handleRadioLinkFailure(w.ueId);
             break;
         }
+        }
+        break;
+    }
+    case NtsMessageType::GNB_XNAP_TO_NGAP: {
+        auto &w = dynamic_cast<NmGnbXnapToNgap &>(*msg);
+        switch (w.present)
+        {
+        case NmGnbXnapToNgap::PREPARE_HANDOVER_TARGET:
+            prepareHandoverTarget(w.ueId, w.amfUeNgapId, std::move(w.handoverSnapshot));
+            break;
+        case NmGnbXnapToNgap::PATH_SWITCH_REQUEST:
+            sendPathSwitchRequest(w.ueId);
+            break;
+        case NmGnbXnapToNgap::RELEASE_HANDOVER_SOURCE:
+            releaseHandoverSource(w.ueId);
+            break;
+        case NmGnbXnapToNgap::RELEASE_FAILED_TARGET:
+            releaseFailedTarget(w.ueId);
+            break;
+        case NmGnbXnapToNgap::REQUEST_UE_RELEASE:
+            // The AMF owns the UE after a Path Switch it never answered: ask it to release; if that is not possible
+            // release locally.
+            if (!sendContextRelease(w.ueId, NgapCause::RadioNetwork_unspecified))
+                releaseFailedTarget(w.ueId);
+            break;
         }
         break;
     }

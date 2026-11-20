@@ -167,6 +167,11 @@ static OrderedMap<std::string, CmdEntry> g_gnbCmdEntries = {
     {"ue-list", {"List all UEs associated with the gNB", "", DefaultDesc, false}},
     {"ue-count", {"Print the total number of UEs connected the this gNB", "", DefaultDesc, false}},
     {"ue-release", {"Request a UE context release for the given UE", "<ue-id>", DefaultDesc, false}},
+    {"xn-status", {"Show Xn runtime status", "", DefaultDesc, false}},
+    {"xn-neighbor-list", {"List configured Xn neighbors and runtime status", "", DefaultDesc, false}},
+    {"handover", {"Initiate an Xn-based handover for the UE (compatibility alias)", "<ue-id> <target-gnb-id>", DefaultDesc, false}},
+    {"xn-handover", {"Initiate an Xn-based handover for the UE", "<ue-id> <target-gnb-id>", DefaultDesc, false}},
+    {"n2-handover", {"Initiate an N2-based handover for the UE", "<ue-id> <target-gnb-id>", DefaultDesc, false}},
 };
 
 static OrderedMap<std::string, CmdEntry> g_ueCmdEntries = {
@@ -180,6 +185,7 @@ static OrderedMap<std::string, CmdEntry> g_ueCmdEntries = {
     {"ps-list", {"List all PDU sessions", "", DefaultDesc, false}},
     {"ps-release", {"Trigger a PDU session release procedure", "<pdu-session-id>...", DefaultDesc, true}},
     {"ps-release-all", {"Trigger PDU session release procedures for all active sessions", "", DefaultDesc, false}},
+    {"mobility-update", {"Trigger a Mobility Registration Update (for testing)", "", DefaultDesc, false}},
     {"deregister",
      {"Perform a de-registration by the UE", "<normal|disable-5g|switch-off|remove-sim>", DefaultDesc, true}},
 };
@@ -229,6 +235,31 @@ static std::unique_ptr<GnbCliCommand> GnbCliParseImpl(const std::string &subCmd,
         cmd->ueId = utils::ParseInt(options.getPositional(0));
         if (cmd->ueId <= 0)
             CMD_ERR("Invalid UE ID")
+        return cmd;
+    }
+    else if (subCmd == "xn-status")
+    {
+        return std::make_unique<GnbCliCommand>(GnbCliCommand::XN_STATUS);
+    }
+    else if (subCmd == "xn-neighbor-list")
+    {
+        return std::make_unique<GnbCliCommand>(GnbCliCommand::XN_NEIGHBOR_LIST);
+    }
+    else if (subCmd == "handover" || subCmd == "xn-handover" || subCmd == "n2-handover")
+    {
+        auto cmd = std::make_unique<GnbCliCommand>(
+            subCmd == "n2-handover" ? GnbCliCommand::N2_HANDOVER : GnbCliCommand::XN_HANDOVER);
+        if (options.positionalCount() < 2)
+            CMD_ERR("UE ID and target gNB ID are expected")
+        if (options.positionalCount() > 2)
+            CMD_ERR("Only UE ID and target gNB ID are expected")
+        cmd->ueId = utils::ParseInt(options.getPositional(0));
+        if (cmd->ueId <= 0)
+            CMD_ERR("Invalid UE ID")
+        auto gnbId = utils::ParseInt(options.getPositional(1));
+        if (gnbId <= 0)
+            CMD_ERR("Invalid target gNB ID")
+        cmd->gnbId = static_cast<uint32_t>(gnbId);
         return cmd;
     }
 
@@ -291,6 +322,10 @@ static std::unique_ptr<UeCliCommand> UeCliParseImpl(const std::string &subCmd, c
             cmd->psIds[i] = static_cast<int8_t>(n);
         }
         return cmd;
+    }
+    else if (subCmd == "mobility-update")
+    {
+        return std::make_unique<UeCliCommand>(UeCliCommand::MOBILITY_UPDATE);
     }
     else if (subCmd == "ps-release-all")
     {

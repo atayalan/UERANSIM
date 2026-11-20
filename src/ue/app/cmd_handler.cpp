@@ -179,6 +179,11 @@ void UeCmdHandler::handleCmdImpl(NmUeCliCommand &msg)
         sendResult(msg.address, "PDU session release procedure(s) triggered");
         break;
     }
+    case app::UeCliCommand::MOBILITY_UPDATE: {
+        m_base->nasTask->mm->mobilityUpdatingRequired(ERegUpdateCause::ENTER_UNLISTED_TRACKING_AREA);
+        sendResult(msg.address, "Mobility Registration Update triggered");
+        break;
+    }
     case app::UeCliCommand::PS_RELEASE_ALL: {
         m_base->nasTask->sm->sendReleaseRequestForAll();
         sendResult(msg.address, "PDU session release procedure(s) triggered");

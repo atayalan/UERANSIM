@@ -20,7 +20,7 @@
 static constexpr const int BUFFER_SIZE = 16384;
 static constexpr const int LOOP_PERIOD = 1000;
 static constexpr const int RECEIVE_TIMEOUT = 200;
-static constexpr const int HEARTBEAT_THRESHOLD = 2000; // (LOOP_PERIOD + RECEIVE_TIMEOUT)'dan büyük olmalı
+static constexpr const int HEARTBEAT_THRESHOLD = 10000; // 容許忙碌時的 heartbeat 延遲，單位為毫秒。
 
 static constexpr const size_t MAX_CELL_COUNT = 256;
 
@@ -77,19 +77,32 @@ void RlsUdpTask::onQuit()
 
 void RlsUdpTask::sendRlsPdu(const InetAddress &addr, const rls::RlsMessage &msg)
 {
-    OctetString stream;
-    rls::EncodeRlsMessage(msg, stream);
-
-    m_server->Send(addr, stream.data(), static_cast<size_t>(stream.length()));
+    try
+    {
+        OctetString stream;
+        rls::EncodeRlsMessage(msg, stream);
+        m_server->Send(addr, stream.data(), static_cast<size_t>(stream.length()));
+    }
+    catch (const std::exception &e)
+    {
+        m_logger->err("RLS PDU send failed: %s", e.what());
+    }
 }
 
 void RlsUdpTask::send(int cellId, const rls::RlsMessage &msg)
 {
-    if (m_cellIdToSti.count(cellId))
+    InetAddress address;
     {
-        auto sti = m_cellIdToSti[cellId];
-        sendRlsPdu(m_cells[sti].address, msg);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        auto itSti = m_cellIdToSti.find(cellId);
+        if (itSti == m_cellIdToSti.end())
+            return;
+        auto itCell = m_cells.find(itSti->second);
+        if (itCell == m_cells.end())
+            return;
+        address = itCell->second.address;
     }
+    sendRlsPdu(address, msg);
 }
 
 void RlsUdpTask::receiveRlsPdu(const InetAddress &addr, std::unique_ptr<rls::RlsMessage> &&msg)
@@ -104,39 +117,54 @@ void RlsUdpTask::receiveRlsPdu(const InetAddress &addr, std::unique_ptr<rls::Rls
             return;
         }
 
-        if (!m_cells.count(msg->sti))
+        int cellId = 0;
+        int oldDbm = INT32_MIN;
+        int newDbm = 0;
         {
-            if (m_cells.size() >= MAX_CELL_COUNT)
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (!m_cells.count(msg->sti))
             {
-                m_logger->warn("Max cell count reached, ignoring new cell");
-                return;
+                if (m_cells.size() >= MAX_CELL_COUNT)
+                {
+                    m_logger->warn("Max cell count reached, ignoring new cell");
+                    return;
+                }
+
+                // 保留 N2／Xn 所需的穩定 gNB ID；舊版 peer 仍依發現順序編號。
+                const auto &heartbeat = static_cast<const rls::RlsHeartBeatAck &>(*msg);
+                m_cells[msg->sti].cellId =
+                    heartbeat.gnbId == 0 ? ++m_cellIdCounter : static_cast<int>(heartbeat.gnbId);
+                m_cellIdToSti[m_cells[msg->sti].cellId] = msg->sti;
             }
 
-            m_cells[msg->sti].cellId = ++m_cellIdCounter;
-            m_cellIdToSti[m_cells[msg->sti].cellId] = msg->sti;
+            if (m_cells.count(msg->sti))
+                oldDbm = m_cells[msg->sti].dbm;
+
+            m_cells[msg->sti].address = addr;
+            m_cells[msg->sti].lastSeen = utils::CurrentTimeMillis();
+
+            newDbm = ((const rls::RlsHeartBeatAck &)*msg).dbm;
+            m_cells[msg->sti].dbm = newDbm;
+            cellId = m_cells[msg->sti].cellId;
         }
 
-        int oldDbm = INT32_MIN;
-        if (m_cells.count(msg->sti))
-            oldDbm = m_cells[msg->sti].dbm;
-
-        m_cells[msg->sti].address = addr;
-        m_cells[msg->sti].lastSeen = utils::CurrentTimeMillis();
-
-        int newDbm = ((const rls::RlsHeartBeatAck &)*msg).dbm;
-        m_cells[msg->sti].dbm = newDbm;
-
         if (oldDbm != newDbm)
-            onSignalChangeOrLost(m_cells[msg->sti].cellId);
+            onSignalChangeOrLost(cellId);
         return;
     }
 
     // Anything else is taken only from a cell, and only from the address the cell answers heartbeats from.
-    if (!m_cells.count(msg->sti) || m_cells[msg->sti].address != addr)
-        return;
+    int cellId = 0;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        auto it = m_cells.find(msg->sti);
+        if (it == m_cells.end() || it->second.address != addr)
+            return;
+        cellId = it->second.cellId;
+    }
 
     auto w = std::make_unique<NmUeRlsToRls>(NmUeRlsToRls::RECEIVE_RLS_MESSAGE);
-    w->cellId = m_cells[msg->sti].cellId;
+    w->cellId = cellId;
     w->msg = std::move(msg);
     m_ctlTask->push(std::move(w));
 }
@@ -144,10 +172,16 @@ void RlsUdpTask::receiveRlsPdu(const InetAddress &addr, std::unique_ptr<rls::Rls
 void RlsUdpTask::onSignalChangeOrLost(int cellId)
 {
     int dbm = INT32_MIN;
-    if (m_cellIdToSti.count(cellId))
+    m_logger->debug("[RLS]Signal changed for cell[%d]", cellId);
     {
-        auto sti = m_cellIdToSti[cellId];
-        dbm = m_cells[sti].dbm;
+        std::lock_guard<std::mutex> lock(m_mutex);
+        auto itSti = m_cellIdToSti.find(cellId);
+        if (itSti != m_cellIdToSti.end())
+        {
+            auto itCell = m_cells.find(itSti->second);
+            if (itCell != m_cells.end())
+                dbm = itCell->second.dbm;
+        }
     }
 
     auto w = std::make_unique<NmUeRlsToRls>(NmUeRlsToRls::SIGNAL_CHANGED);
@@ -160,27 +194,47 @@ void RlsUdpTask::heartbeatCycle(uint64_t time, const Vector3 &simPos)
 {
     std::set<std::pair<uint64_t, int>> toRemove;
 
-    for (auto &cell : m_cells)
     {
-        auto delta = time - cell.second.lastSeen;
-        if (delta > HEARTBEAT_THRESHOLD)
-            toRemove.insert({cell.first, cell.second.cellId});
-    }
+        std::lock_guard<std::mutex> lock(m_mutex);
+        for (auto &cell : m_cells)
+        {
+            auto delta = time - cell.second.lastSeen;
+            if (delta > HEARTBEAT_THRESHOLD)
+                toRemove.insert({cell.first, cell.second.cellId});
+        }
 
-    for (auto cell : toRemove)
-    {
-        m_cells.erase(cell.first);
-        m_cellIdToSti.erase(cell.second);
+        for (auto cell : toRemove)
+        {
+            m_cells.erase(cell.first);
+            m_cellIdToSti.erase(cell.second);
+        }
     }
 
     for (auto cell : toRemove)
         onSignalChangeOrLost(cell.second);
 
-    for (auto &addr : m_searchSpace)
+    if (m_firstWindow && !m_searchSpace.empty())
     {
-        rls::RlsHeartBeat msg{m_shCtx->sti};
-        msg.simPos = simPos;
-        sendRlsPdu(addr, msg);
+        if (m_firstWindowStart == 0) // first time sending heartbeat
+            m_firstWindowStart = time;
+
+        // HB only to the first gNB
+        rls::RlsHeartBeat hb{m_shCtx->sti};
+        hb.simPos = simPos;
+        sendRlsPdu(m_searchSpace.front(), hb);
+
+        if (time - m_firstWindowStart >= 500)
+            m_firstWindow = false; // window is closed
+    }
+    else
+    {
+        // normal diffusion
+        for (auto &addr : m_searchSpace)
+        {
+            rls::RlsHeartBeat msg{m_shCtx->sti};
+            msg.simPos = simPos;
+            sendRlsPdu(addr, msg);
+        }
     }
 }
 

@@ -40,6 +40,7 @@ extern "C"
     struct ASN_RRC_Paging;
     struct ASN_RRC_MIB;
     struct ASN_RRC_SIB1;
+    struct ASN_RRC_RRCReconfiguration;
 }
 
 namespace nr::ue
@@ -58,6 +59,7 @@ class UeRrcTask : public NtsTask
     /* Cell and PLMN related */
     std::unordered_map<int, UeCellDesc> m_cellDesc{};
     int64_t m_lastTimePlmnSearchFailureLogged{};
+    long m_lastTid{};
 
     /* Procedure related */
     ERrcLastSetupRequest m_lastSetupReq{};
@@ -137,6 +139,13 @@ class UeRrcTask : public NtsTask
 
     /* Access Control */
     void performUac(std::shared_ptr<LightSync<UacInput, UacOutput>> &uacCtl);
+
+    /* Handover control */
+    void receiveRrcReconfiguration(const ASN_RRC_RRCReconfiguration &msg);
+    void performCellChange(int newCellId);
+    bool isSuitable(UeCellDesc &cell);
+    bool isAcceptable(UeCellDesc &cell);
+    void sendHandoverConfirmMessage();
 };
 
 } // namespace nr::ue

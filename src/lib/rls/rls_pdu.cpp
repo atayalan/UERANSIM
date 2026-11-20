@@ -33,6 +33,7 @@ void EncodeRlsMessage(const RlsMessage &msg, OctetString &stream)
     {
         auto &m = (const RlsHeartBeatAck &)msg;
         stream.appendOctet4(m.dbm);
+        stream.appendOctet4(m.gnbId);
     }
     else if (msg.msgType == EMessageType::PDU_TRANSMISSION)
     {
@@ -96,6 +97,8 @@ std::unique_ptr<RlsMessage> DecodeRlsMessage(const OctetView &stream)
             return nullptr;
         auto res = std::make_unique<RlsHeartBeatAck>(sti);
         res->dbm = stream.read4I();
+        if (stream.remainingSize() >= 4)
+            res->gnbId = stream.read4UI();
         return res;
     }
     else if (msgType == EMessageType::PDU_TRANSMISSION)

@@ -36,6 +36,7 @@ static struct Options
     std::string configFile{};
     bool noRoutingConfigs{};
     bool disableCmd{};
+    bool testMobilityUpdate{};
     std::string imsi{};
     int count{};
     int tempo{};
@@ -103,6 +104,7 @@ static UeControllerTask *g_controllerTask;
 static nr::ue::UeConfig *ReadConfigYaml()
 {
     auto *result = new nr::ue::UeConfig();
+    result->testMobilityUpdate = g_options.testMobilityUpdate;
     auto config = YAML::LoadFile(g_options.configFile);
 
     result->hplmn.mcc = yaml::GetInt32(config, "mcc", 1, 999);
@@ -291,6 +293,8 @@ static void ReadOptions(int argc, char **argv)
                                       std::nullopt};
     opt::OptionItem itemDisableRouting = {'r', "no-routing-config",
                                           "Do not auto configure routing for UE TUN interface", std::nullopt};
+    opt::OptionItem itemMobilityUpdate = {std::nullopt, "mobi_update",
+                                         "初次註冊成功後測試一次 Mobility Registration Update", std::nullopt};
 
     desc.items.push_back(itemConfigFile);
     desc.items.push_back(itemImsi);
@@ -298,11 +302,13 @@ static void ReadOptions(int argc, char **argv)
     desc.items.push_back(itemTempo);
     desc.items.push_back(itemDisableCmd);
     desc.items.push_back(itemDisableRouting);
+    desc.items.push_back(itemMobilityUpdate);
 
     opt::OptionsResult opt{argc, argv, desc, false, nullptr};
 
     g_options.configFile = opt.getOption(itemConfigFile);
     g_options.noRoutingConfigs = opt.hasFlag(itemDisableRouting);
+    g_options.testMobilityUpdate = opt.hasFlag(itemMobilityUpdate);
     if (opt.hasFlag(itemCount))
     {
         g_options.count = utils::ParseInt(opt.getOption(itemCount));
@@ -397,6 +403,7 @@ static nr::ue::UeConfig *GetConfigByUe(int ueIndex)
     c->gnbSearchList = g_refConfig->gnbSearchList;
     c->defaultSessions = g_refConfig->defaultSessions;
     c->configureRouting = g_refConfig->configureRouting;
+    c->testMobilityUpdate = g_refConfig->testMobilityUpdate;
     c->prefixLogger = g_refConfig->prefixLogger;
     c->integrityMaxRate = g_refConfig->integrityMaxRate;
     c->uacAic = g_refConfig->uacAic;

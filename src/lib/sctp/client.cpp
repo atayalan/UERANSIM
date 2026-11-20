@@ -24,6 +24,12 @@ sctp::SctpClient::SctpClient(PayloadProtocolId ppid, const std::string &address)
     }
 }
 
+sctp::SctpClient::SctpClient(PayloadProtocolId ppid, int acceptedSocket) : sd(acceptedSocket), ppid(ppid)
+{
+    if (sd < 0)
+        throw SctpError("Invalid accepted SCTP socket");
+}
+
 sctp::SctpClient::~SctpClient()
 {
     CloseSocket(sd);
@@ -57,4 +63,9 @@ void sctp::SctpClient::receive(ISctpHandler *handler)
 void sctp::SctpClient::bind(const std::string &address, uint16_t port)
 {
     BindSocket(sd, address, port);
+}
+
+std::string sctp::SctpClient::peerAddress() const
+{
+    return GetPeerAddress(sd);
 }
